@@ -1,0 +1,15 @@
+{
+  "name": "grind-live-root",
+  "version": "1.0.0",
+  "description": "GRIND Live - SaaS Fitness Gamifié",
+  "scripts": {
+    "dev": "cd grind-live && npx next dev",
+    "build": "cd grind-live && npm run build",
+    "start": "cd grind-live && npm run start",
+    "lint": "cd grind-live && npm run lint",
+    "format": "cd grind-live && npm run format"
+  },
+  "keywords": ["fitness", "saas", "nextjs", "supabase"],
+  "author": "Niangdev",
+  "license": "MIT"
+} 
