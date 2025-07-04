@@ -9,7 +9,9 @@
     "lint": "next lint",
     "prepare": "husky install",
     "format": "prettier --write .",
-    "lint:fix": "next lint --fix"
+    "lint:fix": "next lint --fix",
+    "sync": "./sync.sh",
+    "sync:msg": "./sync.sh \"$npm_config_message\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
