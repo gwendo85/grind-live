@@ -1,193 +1,421 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabaseBrowser } from '@/lib/supabaseClient';
+import { useState, useEffect } from 'react';
 import { useUser } from './useUser';
-import type { Workout, WorkoutInsert, ExerciseLogInsert } from '@/lib/types';
+import { supabaseBrowser } from '@/lib/supabaseClient';
+import { Workout, WorkoutInsert, ExerciseLogInsert } from '@/lib/types';
+
+interface ExerciseData {
+  name: string;
+  sets: number;
+  reps: number;
+  weight?: number;
+  rest?: number;
+  notes?: string;
+}
+
+interface WorkoutWithExercises {
+  name: string;
+  notes?: string;
+  exercises: ExerciseData[];
+}
+
+// Données simulées pour les tests
+const MOCK_WORKOUTS: Workout[] = [
+  {
+    id: '1',
+    name: 'Séance Push',
+    notes: 'Développé couché, pompes, dips',
+    user_id: 'mock-user',
+    status: 'completed',
+    is_live: false,
+    date: new Date().toISOString().split('T')[0],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    estimated_duration: 60,
+    exercise_count: 6,
+    is_public: false
+  },
+  {
+    id: '2',
+    name: 'Séance Pull',
+    notes: 'Tractions, rowing, curl',
+    user_id: 'mock-user',
+    status: 'draft',
+    is_live: false,
+    date: new Date().toISOString().split('T')[0],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    estimated_duration: 45,
+    exercise_count: 4,
+    is_public: false
+  }
+];
 
 export function useWorkouts() {
   const { user } = useUser();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSimulationMode, setIsSimulationMode] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
-  // Charger les séances de l'utilisateur
-  const loadWorkouts = useCallback(async () => {
-    if (!user) {
-      setWorkouts([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error } = await supabaseBrowser
-        .from('workouts')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Erreur lors du chargement des séances:', error);
-        setError(error.message);
+  useEffect(() => {
+    console.log('🔍 useWorkouts: useEffect déclenché');
+    setIsClient(true);
+    
+    const loadWorkouts = async () => {
+      console.log('🔍 useWorkouts: loadWorkouts démarré');
+      
+      // Mode simulation si pas d'utilisateur connecté
+      if (!user) {
+        console.log('🔍 useWorkouts: Pas d\'utilisateur, mode simulation activé');
+        setIsSimulationMode(true);
+        setWorkouts(MOCK_WORKOUTS);
+        setLoading(false);
         return;
       }
 
-      setWorkouts(data || []);
-    } catch (err) {
-      console.error('Erreur inattendue:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
-    } finally {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('🔍 useWorkouts: Chargement des séances pour l\'utilisateur:', user.id);
+        
+        const { data, error: fetchError } = await supabaseBrowser
+          .from('workouts')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (fetchError) {
+          console.error('🔍 useWorkouts: Erreur lors du chargement:', fetchError);
+          setError(fetchError.message);
+          setIsSimulationMode(true);
+          setWorkouts(MOCK_WORKOUTS);
+        } else {
+          console.log('🔍 useWorkouts: Séances chargées avec succès:', data?.length || 0);
+          setWorkouts(data || []);
+        }
+      } catch (error) {
+        console.error('🔍 useWorkouts: Erreur réseau:', error);
+        setError('Erreur de connexion');
+        setIsSimulationMode(true);
+        setWorkouts(MOCK_WORKOUTS);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Exécuter seulement côté client
+    if (typeof window !== 'undefined') {
+      loadWorkouts();
+    } else {
+      // Côté serveur, passer directement en mode simulation
+      console.log('🔍 useWorkouts: Côté serveur - Mode simulation activé');
+      setIsSimulationMode(true);
+      setWorkouts(MOCK_WORKOUTS);
       setLoading(false);
     }
   }, [user]);
 
-  // Créer une nouvelle séance
-  const createWorkout = async (workoutData: WorkoutInsert) => {
+  // Écouter les changements en temps réel (seulement si utilisateur connecté)
+  useEffect(() => {
     if (!user) {
-      throw new Error('Utilisateur non connecté');
+      // En mode simulation, pas d'écoute temps réel
+      return;
     }
 
+    console.log('🔍 Configuration de l\'écoute en temps réel pour les séances');
+
+    // Écouter les insertions
+    const insertSubscription = supabaseBrowser
+      .channel('workouts-inserts')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'workouts',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔍 Nouvelle séance détectée:', payload.new);
+          setWorkouts(prev => [payload.new as Workout, ...prev]);
+        }
+      )
+      .subscribe();
+
+    // Écouter les mises à jour
+    const updateSubscription = supabaseBrowser
+      .channel('workouts-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'workouts',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔍 Séance mise à jour:', payload.new);
+          setWorkouts(prev => 
+            prev.map(workout => 
+              workout.id === payload.new.id ? payload.new as Workout : workout
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    // Écouter les suppressions
+    const deleteSubscription = supabaseBrowser
+      .channel('workouts-deletes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'workouts',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔍 Séance supprimée:', payload.old);
+          setWorkouts(prev => 
+            prev.filter(workout => workout.id !== payload.old.id)
+          );
+        }
+      )
+      .subscribe();
+
+    // Nettoyer les abonnements
+    return () => {
+      console.log('🔍 Nettoyage des abonnements temps réel');
+      insertSubscription.unsubscribe();
+      updateSubscription.unsubscribe();
+      deleteSubscription.unsubscribe();
+    };
+  }, [user]);
+
+  // Si on n'est pas encore côté client, retourner les données simulées
+  if (!isClient) {
+    return {
+      workouts: MOCK_WORKOUTS,
+      loading: false,
+      error: null,
+      createWorkout: async () => MOCK_WORKOUTS[0],
+      refresh: () => {},
+      isSimulationMode: true
+    };
+  }
+
+  // Créer une nouvelle séance avec exercices
+  const createWorkout = async (workoutData: WorkoutWithExercises) => {
+    console.log('🔍 createWorkout appelé avec:', workoutData);
+    
+    // Mode simulation si pas d'utilisateur connecté
+    if (!user) {
+      console.log('🔍 Mode simulation : création de séance mock');
+      
+      const newWorkout: Workout = {
+        id: Date.now().toString(),
+        name: workoutData.name,
+        notes: workoutData.notes || '',
+        user_id: 'mock-user',
+        status: 'draft',
+        is_live: false,
+        date: workoutData.date || new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        estimated_duration: parseInt(workoutData.duration || '60'),
+        exercise_count: workoutData.exercises.length,
+        is_public: false
+      };
+
+      // Simuler un délai
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setWorkouts(prev => [newWorkout, ...prev]);
+      return newWorkout;
+    }
+
+    console.log('🔍 Utilisateur:', user);
+    
     try {
       setError(null);
 
-      // Ajouter l'ID de l'utilisateur
+      // Créer la séance
       const workoutWithUser = {
-        ...workoutData,
+        name: workoutData.name,
+        notes: workoutData.notes || '',
         user_id: user.id,
+        status: 'draft',
+        is_live: false,
+        date: workoutData.date || new Date().toISOString().split('T')[0],
       };
 
-      const { data, error } = await supabaseBrowser
+      console.log('🔍 Données de séance à insérer:', workoutWithUser);
+
+      const { data: workout, error: workoutError } = await supabaseBrowser
         .from('workouts')
         .insert(workoutWithUser)
         .select()
         .single();
 
-      if (error) {
-        console.error('Erreur lors de la création de la séance:', error);
-        throw new Error(error.message);
+      console.log('🔍 Résultat création séance:', { workout, workoutError });
+
+      if (workoutError) {
+        console.error('Erreur lors de la création de la séance:', workoutError);
+        throw new Error(workoutError.message);
       }
 
-      // Ajouter la nouvelle séance à la liste
-      setWorkouts(prev => [data, ...prev]);
+      // Créer les exercices pour cette séance
+      if (workoutData.exercises.length > 0) {
+        // Créer d'abord les exercices dans la table exercises
+        const exercisesToCreate = workoutData.exercises.map(exercise => ({
+          name: exercise.name,
+          category: 'strength',
+          description: exercise.notes || '',
+          muscle_groups: [],
+          equipment: [],
+          user_id: user.id,
+        }));
 
-      return data;
-    } catch (err) {
-      console.error('Erreur lors de la création:', err);
-      throw err;
+        const { data: createdExercises, error: exercisesError } = await supabaseBrowser
+          .from('exercises')
+          .insert(exercisesToCreate)
+          .select();
+
+        if (exercisesError) {
+          console.error('Erreur lors de la création des exercices:', exercisesError);
+          await supabaseBrowser.from('workouts').delete().eq('id', workout.id);
+          throw new Error(exercisesError.message);
+        }
+
+        // Créer les logs d'exercices dans exercise_logs
+        const exerciseLogsToCreate = workoutData.exercises.map((exercise, index) => ({
+          workout_id: workout.id,
+          exercise_id: createdExercises[index].id,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          weight: exercise.weight || null,
+          rest_time: exercise.rest || null,
+          notes: exercise.notes || '',
+          user_id: user.id,
+        }));
+
+        const { error: logsError } = await supabaseBrowser
+          .from('exercise_logs')
+          .insert(exerciseLogsToCreate);
+
+        if (logsError) {
+          console.error('Erreur lors de la création des logs d\'exercices:', logsError);
+          await supabaseBrowser.from('workouts').delete().eq('id', workout.id);
+          await supabaseBrowser.from('exercises').delete().in('id', createdExercises.map(ex => ex.id));
+          throw new Error(logsError.message);
+        }
+      }
+
+      console.log('🔍 Séance créée avec succès:', workout);
+      return workout;
+    } catch (error) {
+      console.error('Erreur lors de la création de la séance:', error);
+      throw error;
     }
   };
 
-  // Mettre à jour une séance
-  const updateWorkout = async (id: string, updates: Partial<Workout>) => {
+  const createSimpleWorkout = async (workoutData: WorkoutInsert) => {
+    if (!user) return null;
+    
     try {
-      setError(null);
+      const { data, error } = await supabaseBrowser
+        .from('workouts')
+        .insert({ ...workoutData, user_id: user.id })
+        .select()
+        .single();
 
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Erreur lors de la création de la séance:', error);
+      throw error;
+    }
+  };
+
+  const updateWorkout = async (id: string, updates: Partial<Workout>) => {
+    if (!user) return null;
+    
+    try {
       const { data, error } = await supabaseBrowser
         .from('workouts')
         .update(updates)
         .eq('id', id)
+        .eq('user_id', user.id)
         .select()
         .single();
 
-      if (error) {
-        console.error('Erreur lors de la mise à jour:', error);
-        throw new Error(error.message);
-      }
-
-      // Mettre à jour la séance dans la liste
-      setWorkouts(prev => 
-        prev.map(workout => 
-          workout.id === id ? data : workout
-        )
-      );
-
+      if (error) throw error;
       return data;
-    } catch (err) {
-      console.error('Erreur lors de la mise à jour:', err);
-      throw err;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la séance:', error);
+      throw error;
     }
   };
 
-  // Supprimer une séance
   const deleteWorkout = async (id: string) => {
+    if (!user) return false;
+    
     try {
-      setError(null);
-
       const { error } = await supabaseBrowser
         .from('workouts')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
-      if (error) {
-        console.error('Erreur lors de la suppression:', error);
-        throw new Error(error.message);
-      }
-
-      // Retirer la séance de la liste
-      setWorkouts(prev => prev.filter(workout => workout.id !== id));
-    } catch (err) {
-      console.error('Erreur lors de la suppression:', err);
-      throw err;
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la séance:', error);
+      throw error;
     }
   };
 
-  // Démarrer une séance (passer en mode live)
   const startWorkout = async (id: string) => {
-    return updateWorkout(id, {
-      status: 'live',
-      is_live: true,
-    });
+    return updateWorkout(id, { status: 'in_progress', is_live: true });
   };
 
-  // Terminer une séance
   const finishWorkout = async (id: string) => {
-    return updateWorkout(id, {
-      status: 'completed',
-      is_live: false,
-    });
+    return updateWorkout(id, { status: 'completed', is_live: false });
   };
 
-  // Ajouter un log d'exercice
   const addExerciseLog = async (logData: ExerciseLogInsert) => {
+    if (!user) return null;
+    
     try {
-      setError(null);
-
       const { data, error } = await supabaseBrowser
         .from('exercise_logs')
-        .insert(logData)
+        .insert({ ...logData, user_id: user.id })
         .select()
         .single();
 
-      if (error) {
-        console.error('Erreur lors de l\'ajout du log:', error);
-        throw new Error(error.message);
-      }
-
+      if (error) throw error;
       return data;
-    } catch (err) {
-      console.error('Erreur lors de l\'ajout du log:', err);
-      throw err;
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du log d\'exercice:', error);
+      throw error;
     }
   };
-
-  // Charger les séances au montage et quand l'utilisateur change
-  useEffect(() => {
-    if (user) {
-      loadWorkouts();
-    }
-  }, [user, loadWorkouts]);
 
   return {
     workouts,
     loading,
     error,
     createWorkout,
+    createSimpleWorkout,
     updateWorkout,
     deleteWorkout,
     startWorkout,
     finishWorkout,
     addExerciseLog,
-    refresh: loadWorkouts,
+    refresh: () => {},
+    isSimulationMode
   };
 } 

@@ -85,7 +85,6 @@ export function ManualExerciseForm() {
             category: 'Personnalisé',
             description: exercise.notes || '',
             user_id: user?.id,
-            is_custom: true,
           })
           .select()
           .single();

@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
         description: description?.trim() || null,
         muscle_groups: muscle_groups?.length > 0 ? muscle_groups : null,
         equipment: equipment?.length > 0 ? equipment : null,
-        is_custom: true,
       })
       .select()
       .single();

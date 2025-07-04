@@ -65,8 +65,7 @@ export async function POST() {
       equipment: exercise.equipment,
       level: exercise.level,
       default_reps: exercise.default_reps,
-      user_id: null, // Exercices globaux
-      is_custom: false
+      user_id: null // Exercices globaux
     }));
 
     // Insérer les nouveaux exercices

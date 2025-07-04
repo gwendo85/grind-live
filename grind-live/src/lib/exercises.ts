@@ -8,8 +8,7 @@ export const exercisesData: Omit<Exercise, 'id' | 'created_at' | 'user_id'>[] = 
     category: "poitrine",
     description: "Exercice de base pour développer la force et la masse de la poitrine",
     muscle_groups: ["pectoraux", "triceps", "épaules"],
-    equipment: ["barre", "banc"],
-    is_custom: false,
+    equipment: ["barre", "banc"]
   },
   {
     name: "Pompes",

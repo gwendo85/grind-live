@@ -18,3 +18,6 @@ export const supabaseServer = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: false,
   },
 });
+
+// Export par défaut pour la compatibilité
+export const supabase = supabaseBrowser;

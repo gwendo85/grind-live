@@ -13,8 +13,29 @@ export interface FavoriteWorkout {
     description?: string;
     created_at: string;
     user_id: string;
+    estimated_duration?: number;
+    exercise_count?: number;
   };
 }
+
+// Données simulées pour les tests
+const MOCK_FAVORITES: FavoriteWorkout[] = [
+  {
+    id: '1',
+    user_id: 'mock-user',
+    workout_id: '3',
+    created_at: '2024-01-15T10:00:00Z',
+    workout: {
+      id: '3',
+      name: 'Séance Jambes - Quadriceps/Ischios',
+      description: 'Séance complète pour les jambes',
+      created_at: '2024-01-17T08:00:00Z',
+      user_id: 'mock-user',
+      estimated_duration: 90,
+      exercise_count: 8
+    }
+  }
+];
 
 export function useFavorites() {
   const { user } = useUser();
@@ -24,9 +45,17 @@ export function useFavorites() {
 
   // Charger les favoris
   const loadFavorites = useCallback(async () => {
+    // Mode simulation si pas d'utilisateur connecté
     if (!user) {
-      setFavorites([]);
-      setLoading(false);
+      console.log('🔍 Mode simulation : chargement des favoris mock');
+      setLoading(true);
+      
+      // Simuler un délai de chargement
+      setTimeout(() => {
+        setFavorites(MOCK_FAVORITES);
+        setLoading(false);
+        setError(null);
+      }, 800);
       return;
     }
 
@@ -56,8 +85,34 @@ export function useFavorites() {
 
   // Ajouter aux favoris
   const addToFavorites = async (workoutId: string) => {
+    console.log('🔍 Ajout aux favoris:', workoutId);
+    
+    // Mode simulation si pas d'utilisateur connecté
     if (!user) {
-      throw new Error('Utilisateur non connecté');
+      console.log('🔍 Mode simulation : ajout aux favoris mock');
+      
+      // Simuler un délai
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Créer un nouveau favori simulé
+      const newFavorite: FavoriteWorkout = {
+        id: Date.now().toString(),
+        user_id: 'mock-user',
+        workout_id: workoutId,
+        created_at: new Date().toISOString(),
+        workout: {
+          id: workoutId,
+          name: `Séance ${workoutId}`,
+          description: 'Séance simulée',
+          created_at: new Date().toISOString(),
+          user_id: 'mock-user',
+          estimated_duration: 60,
+          exercise_count: 5
+        }
+      };
+      
+      setFavorites(prev => [newFavorite, ...prev]);
+      return;
     }
 
     try {
@@ -80,8 +135,17 @@ export function useFavorites() {
 
   // Retirer des favoris
   const removeFromFavorites = async (workoutId: string) => {
+    console.log('🔍 Retrait des favoris:', workoutId);
+    
+    // Mode simulation si pas d'utilisateur connecté
     if (!user) {
-      throw new Error('Utilisateur non connecté');
+      console.log('🔍 Mode simulation : retrait des favoris mock');
+      
+      // Simuler un délai
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setFavorites(prev => prev.filter(fav => fav.workout_id !== workoutId));
+      return;
     }
 
     try {
@@ -117,10 +181,8 @@ export function useFavorites() {
 
   // Charger les favoris au montage et quand l'utilisateur change
   useEffect(() => {
-    if (user) {
-      loadFavorites();
-    }
-  }, [user, loadFavorites]);
+    loadFavorites();
+  }, [loadFavorites]);
 
   return {
     favorites,

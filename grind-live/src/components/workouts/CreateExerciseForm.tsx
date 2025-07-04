@@ -75,7 +75,6 @@ export function CreateExerciseForm({ onExerciseCreated, onCancel }: CreateExerci
         description: formData.description.trim() || null,
         muscle_groups: formData.muscleGroups.length > 0 ? formData.muscleGroups : null,
         equipment: formData.equipment.length > 0 ? formData.equipment : null,
-        is_custom: true,
       };
 
       const { data, error: supabaseError } = await supabaseBrowser

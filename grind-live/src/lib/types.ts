@@ -447,7 +447,16 @@ export type Updates<T extends keyof Database['public']['Tables']> =
 // Types spécifiques pour les tables principales
 export type User = Tables<'users'>;
 export type Workout = Tables<'workouts'>;
-export type Exercise = Tables<'exercises'>;
+export type Exercise = {
+  id: string;
+  user_id?: string;
+  name: string;
+  category: string;
+  description?: string;
+  muscle_groups?: string[];
+  equipment?: string[];
+  created_at?: string;
+};
 export type ExerciseLog = Tables<'exercise_logs'>;
 export type XpHistory = Tables<'xp_history'>;
 export type Badge = Tables<'badges'>;
@@ -469,3 +478,18 @@ export type PostInsert = Inserts<'posts'>;
 export type UserUpdate = Updates<'users'>;
 export type WorkoutUpdate = Updates<'workouts'>;
 export type PostUpdate = Updates<'posts'>;
+
+export interface ExerciseInWorkout {
+  exercise_id: string;
+  exercise: Exercise;
+  sets: number;
+  reps: number;
+  weight?: number;
+  rest_time: number;
+  notes?: string;
+  order: number;
+}
+
+export interface WorkoutWithExercises extends Workout {
+  exercises: ExerciseInWorkout[];
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { useProgression } from '@/hooks/useProgression';
 import { useFeed } from '@/hooks/useFeed';
@@ -9,22 +9,29 @@ import { useDailyGoals } from '@/hooks/useDailyGoals';
 import { useChallenges } from '@/hooks/useChallenges';
 import { useTabs } from '@/hooks/useTabs';
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import { CreateWorkoutForm } from '@/components/workouts/CreateWorkoutForm';
 import Link from 'next/link';
-import { ArrowRight, TrendingUp, Target, Clock, Flame, Trophy, Activity } from 'lucide-react';
+import { ArrowRight, TrendingUp, Target, Clock, Flame, Trophy, Activity, Plus, AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function DashboardPage() {
   console.log('🔍 DashboardPage: Rendu du composant');
 
+  // État pour le modal de création de séance
+  const [showCreateWorkout, setShowCreateWorkout] = useState(false);
+
   // Hooks pour les données réelles
   const { user, loading: userLoading, error: userError } = useUser();
-  const { progression, loading: progressionLoading } = useProgression();
-  const { feed, loading: feedLoading } = useFeed();
-  const { workouts, loading: workoutsLoading } = useWorkouts();
-  const { goals, loading: goalsLoading } = useDailyGoals();
-  const { loading: challengesLoading, getMainChallenge } = useChallenges();
+  const { progression, loading: progressionLoading, isSimulationMode: progressionSimulation } = useProgression();
+  const { feed, loading: feedLoading, isSimulationMode: feedSimulation } = useFeed();
+  const { workouts, loading: workoutsLoading, createWorkout, refresh, isSimulationMode: workoutsSimulation } = useWorkouts();
+  const { goals, loading: goalsLoading, isSimulationMode: goalsSimulation } = useDailyGoals();
+  const { loading: challengesLoading, getMainChallenge, isSimulationMode: challengesSimulation } = useChallenges();
   
   // Tabs simplifiés
   const { setActiveTab, isActive } = useTabs(['feed', 'progression', 'seance'], 'feed', 'dashboard-tab');
+
+  // Vérifier si on est en mode simulation (si au moins un hook est en mode simulation)
+  const isSimulationMode = progressionSimulation || feedSimulation || workoutsSimulation || goalsSimulation || challengesSimulation;
 
   console.log('🔍 DashboardPage: État des hooks', {
     userLoading,
@@ -34,17 +41,32 @@ export default function DashboardPage() {
     workoutsLoading,
     goalsLoading,
     challengesLoading,
+    isSimulationMode,
+    progressionSimulation,
+    feedSimulation,
+    workoutsSimulation,
+    goalsSimulation,
+    challengesSimulation,
     user: user ? 'connecté' : 'non connecté'
   });
 
-  // Gestion des erreurs (simplifiée)
-  if (userError) {
+  console.log('🔍 DashboardPage: Séances chargées:', workouts);
+
+  // Gestion des erreurs (améliorée)
+  if (userError && !isSimulationMode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-red-500 mb-4">
+            <AlertCircle size={48} className="mx-auto" />
+          </div>
           <div className="text-xl font-bold text-red-500 mb-2">Erreur de chargement</div>
           <div className="text-gray-600 mb-4">{userError}</div>
-          <button onClick={() => window.location.reload()} className="bg-orange-500 text-white px-4 py-2 rounded-lg">
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw size={16} />
             Réessayer
           </button>
         </div>
@@ -52,12 +74,16 @@ export default function DashboardPage() {
     );
   }
 
-  // Loading state
-  if (userLoading || progressionLoading || feedLoading || workoutsLoading || goalsLoading || challengesLoading) {
+  // Loading state amélioré - ne pas afficher le loading si on est en mode simulation
+  const isLoading = (userLoading || progressionLoading || feedLoading || workoutsLoading || goalsLoading || challengesLoading) && !isSimulationMode;
+  
+  if (isLoading) {
+    console.log('⏳ DashboardPage: Chargement en cours...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-4">
         <div className="max-w-md mx-auto">
           <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <div className="text-xl font-bold text-gray-700 mb-2">Chargement...</div>
             <div className="text-gray-500">Préparation de ton dashboard</div>
           </div>
@@ -79,6 +105,11 @@ export default function DashboardPage() {
               Salut, {user?.username || 'Champion'} ! 💪
             </h1>
             <p className="text-gray-600">Bienvenue sur ton dashboard</p>
+            {isSimulationMode && (
+              <div className="mt-2 text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                🧪 Mode simulation activé
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             <Link href="/workouts" className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -176,8 +207,11 @@ export default function DashboardPage() {
                 <Activity size={20} className="text-blue-500" />
                 Feed d&apos;activité
               </h2>
-              {feedLoading ? (
-                <div className="text-gray-500">Chargement du feed...</div>
+              {feedLoading && !isSimulationMode ? (
+                <div className="text-gray-500 flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                  Chargement du feed...
+                </div>
               ) : feed && feed.length > 0 ? (
                 <div className="space-y-4">
                   {feed.slice(0, 3).map((item, index) => (
@@ -203,8 +237,11 @@ export default function DashboardPage() {
                 <TrendingUp size={20} className="text-green-500" />
                 Ta progression
               </h2>
-              {progressionLoading ? (
-                <div className="text-gray-500">Chargement de la progression...</div>
+              {progressionLoading && !isSimulationMode ? (
+                <div className="text-gray-500 flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
+                  Chargement de la progression...
+                </div>
               ) : progression ? (
                 <div className="space-y-4">
                   <div className="flex justify-between">
@@ -228,18 +265,55 @@ export default function DashboardPage() {
 
           {isActive('seance') && (
             <div>
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Clock size={20} className="text-orange-500" />
-                Tes séances
-              </h2>
-              {workoutsLoading ? (
-                <div className="text-gray-500">Chargement des séances...</div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Clock size={20} className="text-orange-500" />
+                  Tes séances
+                </h2>
+                <button
+                  onClick={() => setShowCreateWorkout(true)}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Créer une séance
+                </button>
+              </div>
+              {workoutsLoading && !isSimulationMode ? (
+                <div className="text-gray-500 flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                  Chargement des séances...
+                </div>
               ) : workouts && workouts.length > 0 ? (
                 <div className="space-y-4">
                   {workouts.slice(0, 3).map((workout, index) => (
-                    <div key={index} className="border-b pb-4 last:border-b-0">
-                      <div className="font-medium">{workout.name}</div>
-                      <div className="text-sm text-gray-600">{workout.created_at}</div>
+                    <div key={workout.id} className="border-b pb-4 last:border-b-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="font-medium text-lg">{workout.name}</div>
+                          <div className="text-sm text-gray-600">
+                            {new Date(workout.created_at).toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-orange-500">
+                            {workout.exercise_count || 0} exercices
+                          </div>
+                          {workout.estimated_duration && (
+                            <div className="text-xs text-gray-500">
+                              ~{workout.estimated_duration} min
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {workout.notes && (
+                        <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                          {workout.notes}
+                        </div>
+                      )}
                     </div>
                   ))}
                   <Link href="/workouts" className="flex items-center gap-2 text-orange-500 hover:text-orange-600 text-sm font-medium">
@@ -248,7 +322,15 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               ) : (
-                <div className="text-gray-500">Aucune séance trouvée</div>
+                <div className="text-center py-8">
+                  <div className="text-gray-500 mb-4">Aucune séance trouvée</div>
+                  <button
+                    onClick={() => setShowCreateWorkout(true)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Créer ta première séance
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -260,12 +342,50 @@ export default function DashboardPage() {
             <Flame size={20} className="text-red-500" />
             Actions rapides
           </h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Link href="/workouts" className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-lg text-center text-sm font-medium transition-colors">
-              Nouvelle séance
-            </Link>
-            <button className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg text-sm font-medium transition-colors">
-              Voir objectifs
+          <div className="space-y-2">
+            <button
+              onClick={async () => {
+                console.log('🔍 Test création séance simple');
+                try {
+                  const testWorkout = {
+                    name: 'Test Séance ' + new Date().toLocaleTimeString(),
+                    notes: 'Séance de test',
+                    exercises: [
+                      {
+                        name: 'Développé couché',
+                        sets: 3,
+                        reps: 10,
+                        weight: 80,
+                        rest: 90,
+                        notes: 'Test'
+                      }
+                    ]
+                  };
+                  console.log('🔍 Création séance test:', testWorkout);
+                  const result = await createWorkout(testWorkout);
+                  console.log('🔍 Résultat création:', result);
+                  alert('Séance créée avec succès !');
+                } catch (error) {
+                  console.error('❌ Erreur création séance:', error);
+                  alert('Erreur: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
+                }
+              }}
+              className="w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              🧪 Test Création Séance
+            </button>
+            <div className="text-xs text-gray-500">
+              Séances actuelles: {workouts?.length || 0}
+            </div>
+            <button
+              onClick={() => {
+                console.log('🔍 Rafraîchissement des séances...');
+                refresh();
+              }}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 justify-center"
+            >
+              <RefreshCw size={16} />
+              Rafraîchir les séances
             </button>
           </div>
         </div>
@@ -288,6 +408,11 @@ export default function DashboardPage() {
               <span className="text-sm font-medium">{mainChallenge.current}/{mainChallenge.target}</span>
             </div>
           </div>
+        )}
+
+        {/* Modal de création de séance */}
+        {showCreateWorkout && (
+          <CreateWorkoutForm onClose={() => setShowCreateWorkout(false)} />
         )}
       </div>
     </div>
