@@ -8,7 +8,18 @@ export default function AuthPage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center">
-            <Trophy className="h-12 w-12 text-primary" />
+            <span className="flex items-center justify-center" style={{ width: 56, height: 56 }}>
+              <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="g-orange-auth" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FF9100"/>
+                    <stop offset="1" stopColor="#FF6A00"/>
+                  </linearGradient>
+                </defs>
+                <rect x="0" y="0" width="56" height="56" rx="16" fill="url(#g-orange-auth)"/>
+                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central" fontFamily="Inter, Arial, sans-serif" fontWeight="700" fontSize="32" fill="#fff">G</text>
+              </svg>
+            </span>
           </div>
           <h2 className="mt-6 text-3xl font-bold tracking-tight">Rejoins GRIND Live</h2>
           <p className="mt-2 text-sm text-muted-foreground">

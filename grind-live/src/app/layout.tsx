@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import { Toaster } from '@/components/ui/sonner';
+import { LogOut } from 'lucide-react';
 
 const inter = Inter({ subsets: ['latin'] });
 

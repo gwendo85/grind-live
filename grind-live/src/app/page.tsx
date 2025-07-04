@@ -1,208 +1,91 @@
+import { Zap, Brain, Users, Dumbbell, LogOut } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Trophy, Users, Zap, Target, TrendingUp, Play, Award, BarChart3 } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
-        <div className="container mx-auto text-center">
-          <Badge variant="secondary" className="mb-4">
-            🚀 Nouveau - Mode LIVE disponible
-          </Badge>
-
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Transforme tes
-            <span className="text-primary block">entraînements</span>
-            en aventure
-          </h1>
-
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            GRIND Live révolutionne le fitness avec la gamification, le social et le mode LIVE.
-            Gagne de l'XP, débloque des badges, défie tes amis et partage tes séances en direct.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="text-lg px-8 py-6">
-              <Link href="/auth">
-                Commencer gratuitement
-                <Zap className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
-              <Link href="#features">
-                Découvrir les features
-                <Play className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
+    <div className="h-screen flex flex-col justify-center items-center bg-gradient-to-br from-[#e9f0ff] to-[#f6f7fb] px-2 pb-safe overflow-hidden">
+      <section
+        className="bg-white rounded-[2.5rem] shadow-2xl flex flex-col items-center text-center"
+        style={{
+          boxShadow: '0 8px 40px 0 rgba(31,38,135,0.10)',
+          width: '100%',
+          maxWidth: 440,
+          height: 'auto',
+          minHeight: 520,
+          maxHeight: 700,
+          padding: '2.5rem 2rem',
+        }}
+      >
+        {/* Logo + texte */}
+        <div className="flex items-center justify-center gap-4 mb-2">
+          {/* Logo carré arrondi orange dégradé avec G blanche */}
+          <span className="flex items-center justify-center" style={{ width: 56, height: 56 }}>
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="g-orange" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#FF9100"/>
+                  <stop offset="1" stopColor="#FF6A00"/>
+                </linearGradient>
+              </defs>
+              <rect x="0" y="0" width="56" height="56" rx="16" fill="url(#g-orange)"/>
+              <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central" fontFamily="Inter, Arial, sans-serif" fontWeight="700" fontSize="32" fill="#fff">G</text>
+            </svg>
+          </span>
+          <span className="flex items-end">
+            <span className="font-extrabold text-4xl md:text-5xl text-black leading-none" style={{letterSpacing:'-0.04em',textShadow:'0 2px 8px rgba(0,0,0,0.18)'}}>GRIND</span>
+            <span className="font-extrabold text-4xl md:text-5xl text-black leading-none ml-2" style={{letterSpacing:'-0.04em',textShadow:'0 2px 8px rgba(0,0,0,0.18)'}}>Live</span>
+          </span>
+        </div>
+        {/* Slogan orange */}
+        <div className="text-xl md:text-2xl font-bold text-[#FF6A00] mb-2">Transforme ta passion en puissance <span role="img" aria-label="flamme">🔥</span></div>
+        {/* Valeurs */}
+        <div className="text-lg md:text-xl font-extrabold text-[#232B3A] mb-3">Performance • Discipline • Communauté</div>
+        {/* Accroche italique */}
+        <div className="italic text-[#232B3A] text-base md:text-lg mb-6 opacity-90">Transforme ton quotidien, dépasse-toi.</div>
+        {/* Icônes features */}
+        <div className="flex justify-center gap-6 mb-7 w-full">
+          <div className="flex flex-col items-center flex-1">
+            <span className="bg-[#FFE7C2] rounded-2xl p-6 mb-2 flex items-center justify-center transition-all duration-200 shadow-sm backdrop-blur-md bg-opacity-70 hover:scale-105 hover:shadow-lg hover:bg-[#ffe0b2]/80 hover:backdrop-blur-xl cursor-pointer">
+              {/* Éclair orange */}
+              <svg width="40" height="40" viewBox="0 0 32 32" fill="none"><path d="M13.5 3L6 18h7l-2 9L26 14h-7l2-11-7.5 11z" fill="#FF9100"/></svg>
+            </span>
+            <span className="text-lg font-bold text-[#232B3A] mt-1">Training</span>
+          </div>
+          <div className="flex flex-col items-center flex-1">
+            <span className="bg-[#D6E7FF] rounded-2xl p-6 mb-2 flex items-center justify-center transition-all duration-200 shadow-sm backdrop-blur-md bg-opacity-70 hover:scale-105 hover:shadow-lg hover:bg-[#dbeafe]/80 hover:backdrop-blur-xl cursor-pointer">
+              {/* Cerveau bleu */}
+              <svg width="40" height="40" viewBox="0 0 32 32" fill="none"><path d="M10.5 19.5C8 19.5 6 17.5 6 15s2-4.5 4.5-4.5c.5-2 2.5-3.5 4.5-3.5s4 1.5 4.5 3.5C24 10.5 26 12.5 26 15s-2 4.5-4.5 4.5" stroke="#3B82F6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M16 11v10M13 13v6M19 13v6" stroke="#3B82F6" strokeWidth="2.2" strokeLinecap="round"/></svg>
+            </span>
+            <span className="text-lg font-bold text-[#232B3A] mt-1">Mental</span>
+          </div>
+          <div className="flex flex-col items-center flex-1">
+            <span className="bg-[#D6F9E7] rounded-2xl p-6 mb-2 flex items-center justify-center transition-all duration-200 shadow-sm backdrop-blur-md bg-opacity-70 hover:scale-105 hover:shadow-lg hover:bg-[#bbf7d0]/80 hover:backdrop-blur-xl cursor-pointer">
+              {/* Personne verte */}
+              <svg width="40" height="40" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="12" r="5" fill="#22C55E"/><rect x="8" y="20" width="16" height="6" rx="3" fill="#22C55E"/></svg>
+            </span>
+            <span className="text-lg font-bold text-[#232B3A] mt-1">Social</span>
+          </div>
+          <div className="flex flex-col items-center flex-1">
+            <span className="bg-[#F3E8FF] rounded-2xl p-6 mb-2 flex items-center justify-center transition-all duration-200 shadow-sm backdrop-blur-md bg-opacity-70 hover:scale-105 hover:shadow-lg hover:bg-[#f3e8ff]/90 hover:backdrop-blur-xl cursor-pointer">
+              {/* Haltères violettes */}
+              <svg width="40" height="40" viewBox="0 0 32 32" fill="none"><rect x="8" y="14" width="16" height="4" rx="2" fill="#A259F7"/><rect x="10" y="10" width="4" height="12" rx="2" fill="#A259F7"/><rect x="18" y="10" width="4" height="12" rx="2" fill="#A259F7"/></svg>
+            </span>
+            <span className="text-lg font-bold text-[#232B3A] mt-1">Fitness</span>
           </div>
         </div>
+        {/* Bouton orange */}
+        <Link href="/auth" className="block w-full">
+          <button className="w-full bg-[#FF6A00] hover:bg-[#ff9100] text-white font-bold text-xl rounded-2xl py-4 shadow-lg transition-all mb-3" style={{boxShadow:'0 4px 16px 0 rgba(255,105,0,0.15)'}}>Commencer maintenant</button>
+        </Link>
+        {/* Texte bas */}
+        <div className="text-[#B0B8C1] text-base mt-1">Rejoins ceux qui partagent les mêmes valeurs</div>
       </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Tout ce dont tu as besoin pour progresser
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Une plateforme complète qui combine tracking intelligent, gamification et social
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Tracking Intelligent */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <BarChart3 className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Tracking Intelligent</CardTitle>
-                <CardDescription>
-                  Suis tes performances avec précision. Volume, PR, progression - tout est
-                  automatiquement calculé.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Calcul automatique du volume</li>
-                  <li>• Suivi des records personnels</li>
-                  <li>• Statistiques détaillées</li>
-                  <li>• Historique complet</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Gamification */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <Trophy className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Gamification</CardTitle>
-                <CardDescription>
-                  Gagne de l'XP à chaque séance, monte en niveau et débloque des badges exclusifs.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Système d'XP et de niveaux</li>
-                  <li>• Badges à débloquer</li>
-                  <li>• Défis hebdomadaires</li>
-                  <li>• Classements</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Mode LIVE */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <Play className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Mode LIVE</CardTitle>
-                <CardDescription>
-                  Partage tes séances en direct avec tes amis. Motivation et encouragement en temps
-                  réel.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Séances en direct</li>
-                  <li>• Statistiques temps réel</li>
-                  <li>• Chat intégré</li>
-                  <li>• Replays disponibles</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Social */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <Users className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Social</CardTitle>
-                <CardDescription>
-                  Connecte-toi avec d'autres passionnés, partage tes progrès et motive tes amis.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Feed d'activités</li>
-                  <li>• Système d'amis</li>
-                  <li>• Likes et commentaires</li>
-                  <li>• Défis entre amis</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Progression */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Progression Structurée</CardTitle>
-                <CardDescription>
-                  Des objectifs clairs et des programmes adaptés pour une progression constante.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Objectifs personnalisés</li>
-                  <li>• Programmes adaptés</li>
-                  <li>• Suivi de progression</li>
-                  <li>• Recommandations IA</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Récompenses */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <Award className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Récompenses</CardTitle>
-                <CardDescription>
-                  Débloque des récompenses exclusives et montre tes accomplissements.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Badges exclusifs</li>
-                  <li>• Titres personnalisés</li>
-                  <li>• Récompenses saisonnières</li>
-                  <li>• Hall of Fame</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-primary/5">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Prêt à transformer tes entraînements ?
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Rejoins des milliers d'athlètes qui ont déjà révolutionné leur approche du fitness
-          </p>
-          <Button asChild size="lg" className="text-lg px-8 py-6">
-            <Link href="/auth">
-              Commencer maintenant
-              <Target className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-      </section>
+      {/* Bouton déconnexion en bas sur mobile */}
+      <div className="w-full flex justify-end pr-6 pb-6 md:hidden">
+        <button className="bg-[#FF6A00] rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-transform active:scale-90 active:shadow-inner">
+          <LogOut className="w-6 h-6 text-white" />
+        </button>
+      </div>
     </div>
   );
 }

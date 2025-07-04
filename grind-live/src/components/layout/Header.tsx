@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { User, LogOut, Settings, Trophy, Users, Home, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,11 +16,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabaseBrowser } from '@/lib/supabaseClient';
 import type { User as UserType } from '@/lib/types';
+import { motion } from 'framer-motion';
 
 export default function Header() {
   const [user, setUser] = useState<UserType | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const gradientId = useId();
 
   useEffect(() => {
     const getUser = async () => {
@@ -72,38 +75,59 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+    <motion.header
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+      className="sticky top-0 z-50 w-full border-b bg-white/60 backdrop-blur-xl supports-[backdrop-filter]:bg-white/40 shadow-lg border-white/30"
+      style={{
+        WebkitBackdropFilter: 'blur(16px)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1.5px solid rgba(255,255,255,0.25)',
+        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)',
+      }}
+    >
+      <div className={`flex h-14 items-center w-full ${pathname === '/' ? 'px-4 md:px-8 max-w-3xl mx-auto' : 'container'}`}>
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
-          <Trophy className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl">GRIND Live</span>
+        <Link href="/" className="flex items-center space-x-3">
+          {/* Logo carré arrondi orange dégradé avec G blanche */}
+          <span className="w-12 h-12 flex items-center justify-center rounded-xl shadow-md">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#FF9100"/>
+                  <stop offset="1" stopColor="#FF6A00"/>
+                </linearGradient>
+              </defs>
+              <rect x="0" y="0" width="48" height="48" rx="12" fill={`url(#${gradientId})`}/>
+              <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central" fontFamily="Inter, Arial, sans-serif" fontWeight="700" fontSize="24" fill="#fff">G</text>
+            </svg>
+          </span>
+          {/* Texte logo */}
+          <span className="flex items-end">
+            <span className="font-extrabold text-3xl text-black leading-none" style={{ letterSpacing: '-0.04em', textShadow: '0 2px 8px rgba(0,0,0,0.10)' }}>GRIND</span>
+            <span className="font-semibold text-3xl text-black leading-none ml-2" style={{ letterSpacing: '-0.04em', textShadow: '0 2px 8px rgba(0,0,0,0.10)' }}>Live</span>
+          </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 ml-6">
-          <Link
-            href="/dashboard"
-            className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-          >
-            <Home className="h-4 w-4" />
-            <span>Dashboard</span>
-          </Link>
-          <Link
-            href="/workouts"
-            className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-          >
-            <Trophy className="h-4 w-4" />
-            <span>Workouts</span>
-          </Link>
-          <Link
-            href="/social"
-            className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-          >
-            <Users className="h-4 w-4" />
-            <span>Social</span>
-          </Link>
-        </nav>
+        {/* Desktop Navigation - masqué sauf sur la landing page */}
+        {pathname !== '/' && (
+          <nav className="hidden md:flex items-center space-x-6 ml-6">
+            <Link href="/dashboard" className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary">
+              <Home className="h-4 w-4" style={{ color: '#FF9100' }} />
+              <span>Dashboard</span>
+            </Link>
+            <Link href="/workouts" className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary">
+              <Trophy className="h-4 w-4" style={{ color: '#FF9100' }} />
+              <span>Workouts</span>
+            </Link>
+            <Link href="/social" className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary">
+              <Users className="h-4 w-4" style={{ color: '#FF9100' }} />
+              <span>Social</span>
+            </Link>
+          </nav>
+        )}
 
         <div className="flex flex-1 items-center justify-end space-x-4">
           {user ? (
@@ -159,59 +183,61 @@ export default function Header() {
               </DropdownMenu>
             </>
           ) : (
-            <div className="flex items-center space-x-2">
-              <Button asChild variant="ghost">
-                <Link href="/auth">Sign In</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/auth">Get Started</Link>
-              </Button>
-            </div>
+            pathname === '/' && (
+              <div className="flex items-center space-x-2">
+                <Button asChild>
+                  <Link href="/auth">Connexion</Link>
+                </Button>
+              </div>
+            )
           )}
 
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </Button>
+          {/* Icône de déconnexion à l'extrême droite, visible si connecté et pas sur la landing page */}
+          {user && pathname !== '/' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Déconnexion"
+              onClick={handleSignOut}
+              className="text-orange-500 hover:bg-orange-100 hover:text-orange-600 transition-colors"
+            >
+              <LogOut className="w-6 h-6" />
+            </Button>
+          )}
+
+          {/* Mobile Menu Button - masqué sauf sur la landing page */}
+          {pathname !== '/' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      {isMenuOpen && (
+      {/* Mobile Navigation - masqué sauf sur la landing page */}
+      {isMenuOpen && pathname !== '/' && (
         <div className="md:hidden border-t bg-background">
           <nav className="container py-4 space-y-4">
-            <Link
-              href="/dashboard"
-              className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-              onClick={() => setIsMenuOpen(false)}
-            >
+            <Link href="/dashboard" className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary" onClick={() => setIsMenuOpen(false)}>
               <Home className="h-4 w-4" />
               <span>Dashboard</span>
             </Link>
-            <Link
-              href="/workouts"
-              className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-              onClick={() => setIsMenuOpen(false)}
-            >
+            <Link href="/workouts" className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary" onClick={() => setIsMenuOpen(false)}>
               <Trophy className="h-4 w-4" />
               <span>Workouts</span>
             </Link>
-            <Link
-              href="/social"
-              className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-              onClick={() => setIsMenuOpen(false)}
-            >
+            <Link href="/social" className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary" onClick={() => setIsMenuOpen(false)}>
               <Users className="h-4 w-4" />
               <span>Social</span>
             </Link>
           </nav>
         </div>
       )}
-    </header>
+    </motion.header>
   );
 }
