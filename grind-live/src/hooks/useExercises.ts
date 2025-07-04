@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabaseBrowser } from '@/lib/supabaseClient';
 import type { Exercise } from '@/lib/types';
+import type { User } from '@supabase/supabase-js';
 
 // Cache global pour les exercices
 let exercisesCache: Exercise[] | null = null;
@@ -11,7 +12,7 @@ export function useExercises() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // Récupérer l'utilisateur actuel
   useEffect(() => {
@@ -105,43 +106,34 @@ export function useExercises() {
     loadExercises();
   }, [loadExercises]);
 
-  const createCustomExercise = useCallback(async (exerciseData: Omit<Exercise, 'id' | 'created_at'>) => {
+  const createExercise = async (exerciseData: Omit<Exercise, 'id' | 'created_at' | 'user_id'>) => {
     if (!user) {
       throw new Error('Utilisateur non connecté');
     }
 
     try {
-      setError(null);
-
-      const { data, error: supabaseError } = await supabaseBrowser
+      const { data, error } = await supabaseBrowser
         .from('exercises')
         .insert({
           ...exerciseData,
           user_id: user.id,
-          is_custom: true,
         })
         .select()
         .single();
 
-      if (supabaseError) {
-        console.error('❌ Erreur lors de la création:', supabaseError);
-        throw new Error(supabaseError.message);
+      if (error) {
+        throw error;
       }
 
-      console.log('✅ Exercice personnalisé créé:', data);
-
-      // Mettre à jour le cache et l'état
-      if (exercisesCache) {
-        exercisesCache = [...exercisesCache, data];
-      }
-      setExercises(prev => [...prev, data]);
-
+      // Recharger les exercices
+      await loadExercises();
+      
       return data;
     } catch (err) {
-      console.error('❌ Erreur lors de la création:', err);
+      console.error('Erreur lors de la création de l\'exercice:', err);
       throw err;
     }
-  }, [user]);
+  };
 
   return {
     exercises,
@@ -149,6 +141,6 @@ export function useExercises() {
     error,
     refresh: refreshExercises,
     loadExercises,
-    createCustomExercise,
+    createExercise,
   };
 } 

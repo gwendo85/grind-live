@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Search, Filter, X, Plus, UserPlus } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -28,17 +28,13 @@ const categories = [
 ];
 
 export function ExerciseSelector({ onExerciseSelect, selectedExercises = [] }: ExerciseSelectorProps) {
-  const { exercises, loading, error, createCustomExercise } = useExercises();
+  const { exercises, loading, error } = useExercises();
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  useEffect(() => {
-    filterExercises();
-  }, [exercises, searchTerm, selectedCategory]);
-
-  const filterExercises = () => {
+  const filterExercises = useCallback(() => {
     let filtered = exercises;
 
     // Filtre par catégorie
@@ -47,18 +43,22 @@ export function ExerciseSelector({ onExerciseSelect, selectedExercises = [] }: E
     }
 
     // Filtre par recherche
-    if (searchTerm) {
+    if (searchQuery) {
       filtered = filtered.filter(exercise =>
-        exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        exercise.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        exercise.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         exercise.muscle_groups.some(muscle => 
-          muscle.toLowerCase().includes(searchTerm.toLowerCase())
+          muscle.toLowerCase().includes(searchQuery.toLowerCase())
         )
       );
     }
 
     setFilteredExercises(filtered);
-  };
+  }, [exercises, selectedCategory, searchQuery]);
+
+  useEffect(() => {
+    filterExercises();
+  }, [exercises, searchQuery, selectedCategory, filterExercises]);
 
   const isExerciseSelected = (exercise: Exercise) => {
     return selectedExercises.some(selected => selected.id === exercise.id);
@@ -70,7 +70,7 @@ export function ExerciseSelector({ onExerciseSelect, selectedExercises = [] }: E
     }
   };
 
-  const handleExerciseCreated = (exercise: Exercise) => {
+  const handleExerciseCreated = () => {
     setShowCreateForm(false);
     // L'exercice sera automatiquement ajouté à la liste via le hook
   };
@@ -144,7 +144,7 @@ export function ExerciseSelector({ onExerciseSelect, selectedExercises = [] }: E
               onClick={() => setShowCreateForm(true)}
               className="flex items-center gap-1"
             >
-              <UserPlus className="h-4 w-4" />
+              <Plus className="h-4 w-4" />
               Créer
             </Button>
           </div>
@@ -156,8 +156,8 @@ export function ExerciseSelector({ onExerciseSelect, selectedExercises = [] }: E
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Rechercher un exercice..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -182,7 +182,7 @@ export function ExerciseSelector({ onExerciseSelect, selectedExercises = [] }: E
         <div className="grid gap-3 max-h-96 overflow-y-auto">
           {filteredExercises.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              {searchTerm || selectedCategory !== 'all' 
+              {searchQuery || selectedCategory !== 'all' 
                 ? 'Aucun exercice trouvé avec ces critères'
                 : 'Aucun exercice disponible'
               }
@@ -204,7 +204,7 @@ export function ExerciseSelector({ onExerciseSelect, selectedExercises = [] }: E
                       <h3 className="font-semibold text-lg">{exercise.name}</h3>
                       {exercise.is_custom && (
                         <Badge variant="outline" className="text-xs">
-                          <UserPlus className="h-3 w-3 mr-1" />
+                          <Plus className="h-3 w-3 mr-1" />
                           Personnalisé
                         </Badge>
                       )}

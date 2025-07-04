@@ -10,7 +10,7 @@ import { useChallenges } from '@/hooks/useChallenges';
 import { useTabs } from '@/hooks/useTabs';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import Link from 'next/link';
-import { ArrowRight, TrendingUp, Target, Clock, Flame, Trophy, Calendar, Activity } from 'lucide-react';
+import { ArrowRight, TrendingUp, Target, Clock, Flame, Trophy, Activity } from 'lucide-react';
 
 export default function DashboardPage() {
   console.log('🔍 DashboardPage: Rendu du composant');
@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const { feed, loading: feedLoading } = useFeed();
   const { workouts, loading: workoutsLoading } = useWorkouts();
   const { goals, loading: goalsLoading } = useDailyGoals();
-  const { challenges, loading: challengesLoading, getMainChallenge } = useChallenges();
+  const { loading: challengesLoading, getMainChallenge } = useChallenges();
   
   // Tabs simplifiés
   const { setActiveTab, isActive } = useTabs(['feed', 'progression', 'seance'], 'feed', 'dashboard-tab');
@@ -99,7 +99,7 @@ export default function DashboardPage() {
             <div className="text-sm text-gray-600">Séances</div>
             <div className="text-xs text-green-500 mt-1 flex items-center justify-center gap-1">
               <TrendingUp size={12} />
-              {progression?.sessionsPercent || 0}% de l'objectif
+              {progression?.sessionsPercent || 0}% de l&apos;objectif
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-4 text-center">
@@ -109,7 +109,7 @@ export default function DashboardPage() {
             <div className="text-sm text-gray-600">Volume (kg)</div>
             <div className="text-xs text-green-500 mt-1 flex items-center justify-center gap-1">
               <Target size={12} />
-              {progression?.volumePercent || 0}% de l'objectif
+              {progression?.volumePercent || 0}% de l&apos;objectif
             </div>
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function DashboardPage() {
             <div>
               <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <Activity size={20} className="text-blue-500" />
-                Feed d'activité
+                Feed d&apos;activité
               </h2>
               {feedLoading ? (
                 <div className="text-gray-500">Chargement du feed...</div>

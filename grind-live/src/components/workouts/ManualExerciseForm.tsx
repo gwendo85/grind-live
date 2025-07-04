@@ -42,7 +42,7 @@ export function ManualExerciseForm() {
     setExercises([...exercises, newExercise]);
   };
 
-  const updateExercise = (id: string, field: keyof ExerciseEntry, value: any) => {
+  const updateExercise = (id: string, field: keyof ExerciseEntry, value: string | number) => {
     setExercises(prev =>
       prev.map(ex => ex.id === id ? { ...ex, [field]: value } : ex)
     );
@@ -52,7 +52,7 @@ export function ManualExerciseForm() {
     setExercises(prev => prev.filter(ex => ex.id !== id));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!name.trim()) {
@@ -91,8 +91,8 @@ export function ManualExerciseForm() {
           .single();
 
         if (exerciseError) {
-          console.error('Erreur lors de la création de l\'exercice:', exerciseError);
-          throw new Error(`Erreur lors de la création de l'exercice "${exercise.name}"`);
+          console.error('Erreur lors de la création de l&apos;exercice:', exerciseError);
+          throw new Error(`Erreur lors de la création de l&apos;exercice &quot;${exercise.name}&quot;`);
         }
 
         createdExercises.push(newExercise);
@@ -189,7 +189,7 @@ export function ManualExerciseForm() {
             {exercises.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
                 <p className="mb-2">Aucun exercice ajouté</p>
-                <p className="text-sm">Cliquez sur "Ajouter un exercice" pour commencer</p>
+                <p className="text-sm">Cliquez sur &quot;Ajouter un exercice&quot; pour commencer</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -210,7 +210,7 @@ export function ManualExerciseForm() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor={`name-${exercise.id}`}>Nom de l'exercice *</Label>
+                        <Label htmlFor={`name-${exercise.id}`}>Nom de l&apos;exercice *</Label>
                         <Input
                           id={`name-${exercise.id}`}
                           value={exercise.name}

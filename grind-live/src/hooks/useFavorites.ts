@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabaseBrowser } from '@/lib/supabaseClient';
 import { useUser } from './useUser';
 
@@ -23,7 +23,7 @@ export function useFavorites() {
   const [error, setError] = useState<string | null>(null);
 
   // Charger les favoris
-  const loadFavorites = async () => {
+  const loadFavorites = useCallback(async () => {
     if (!user) {
       setFavorites([]);
       setLoading(false);
@@ -52,7 +52,7 @@ export function useFavorites() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   // Ajouter aux favoris
   const addToFavorites = async (workoutId: string) => {
@@ -117,8 +117,10 @@ export function useFavorites() {
 
   // Charger les favoris au montage et quand l'utilisateur change
   useEffect(() => {
-    loadFavorites();
-  }, [user]);
+    if (user) {
+      loadFavorites();
+    }
+  }, [user, loadFavorites]);
 
   return {
     favorites,

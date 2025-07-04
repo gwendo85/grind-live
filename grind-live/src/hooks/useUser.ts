@@ -13,16 +13,13 @@ export interface User {
   goal?: string;
 }
 
-// Mock user par défaut
-const mockUser: User = {
-  id: '1',
-  username: 'TestUser',
-  email: 'test@grind.live',
-  avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-  level: 3,
-  xp: 250,
-  goal: 'Prendre du muscle',
-};
+// Mock user pour le développement
+// const mockUser = {
+//   id: 'mock-user-id',
+//   email: 'test@example.com',
+//   username: 'TestUser',
+//   created_at: new Date().toISOString(),
+// };
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);

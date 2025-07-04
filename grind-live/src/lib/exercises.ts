@@ -1,12 +1,15 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 // Base de données d'exercices pour Grind Live
-export const exercisesData = [
+export const exercisesData: Omit<Exercise, 'id' | 'created_at' | 'user_id'>[] = [
   // Exercices de poitrine
   {
     name: "Développé couché",
     category: "poitrine",
     description: "Exercice de base pour développer la force et la masse de la poitrine",
     muscle_groups: ["pectoraux", "triceps", "épaules"],
-    equipment: ["banc", "barre", "disques"]
+    equipment: ["barre", "banc"],
+    is_custom: false,
   },
   {
     name: "Pompes",
@@ -193,7 +196,7 @@ export const exercisesData = [
 ];
 
 // Fonction pour insérer les exercices dans Supabase
-export async function seedExercises(supabase: any) {
+export async function seedExercises(supabase: SupabaseClient) {
   console.log('🌱 Seeding exercises...');
   
   for (const exercise of exercisesData) {

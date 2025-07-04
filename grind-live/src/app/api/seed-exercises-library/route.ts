@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 const exercisesLibrary = [
   { name: "Développé couché barre", description: "Allonge-toi sur un banc, prends la barre en pronation, abaisse-la au niveau de ta poitrine puis pousse-la vers le haut en tendant les bras.", category: "Pectoraux", equipment: "Barre, Banc", level: "Intermédiaire", default_reps: "4x8-12" },
@@ -30,7 +30,7 @@ const exercisesLibrary = [
   { name: "Farmer Walk", description: "Tiens des poids de chaque côté et marche.", category: "Cardio / Fonctionnel", equipment: "Haltères ou kettlebells", level: "Intermédiaire", default_reps: "4x30 sec" }
 ];
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const cookieStore = await cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const cookieStore = await cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       }
       acc[exercise.category].push(exercise);
       return acc;
-    }, {} as Record<string, any[]>) || {};
+    }, {} as Record<string, unknown[]>) || {};
 
     return NextResponse.json({ 
       message: 'Bibliothèque d\'exercices récupérée avec succès',
@@ -141,4 +141,8 @@ export async function GET(request: NextRequest) {
       error: 'Erreur lors de la récupération de la bibliothèque d\'exercices' 
     }, { status: 500 });
   }
+}
+
+export async function DELETE() {
+  // ... existing code ...
 } 

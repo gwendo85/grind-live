@@ -1,31 +1,29 @@
 "use client";
 import React, { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { useWorkouts } from "@/hooks/useWorkouts";
-import { useUser } from "@/hooks/useUser";
-import { useFavorites } from "@/hooks/useFavorites";
 import { useExplorer } from "@/hooks/useExplorer";
+import { useFavorites } from "@/hooks/useFavorites";
 import { CreateWorkoutForm } from "@/components/workouts/CreateWorkoutForm";
-import { ManualExerciseForm } from "@/components/workouts/ManualExerciseForm";
-import { ExercisePreloader } from "@/components/workouts/ExercisePreloader";
-import { ArrowLeft, Plus, Clock, Target, TrendingUp, Star, X, Edit3, Search, Filter } from "lucide-react";
+import { ExerciseSelector } from "@/components/workouts/ExerciseSelector";
+import Link from "next/link";
+import { Plus, Search, Star, ArrowLeft, Edit3, TrendingUp } from "lucide-react";
+import type { WorkoutInsert } from "@/lib/types";
 
 export default function WorkoutsPage() {
-  const { user, loading: userLoading } = useUser();
   const { workouts, loading: workoutsLoading, error: workoutsError, createWorkout } = useWorkouts();
-  const { favorites, loading: favoritesLoading, error: favoritesError, toggleFavorite, isFavorite } = useFavorites();
   const { publicWorkouts, popularWorkouts: explorerPopularWorkouts, loading: explorerLoading, error: explorerError, searchWorkouts, filterByDifficulty } = useExplorer();
+  const { favorites, loading: favoritesLoading, error: favoritesError, toggleFavorite, isFavorite } = useFavorites();
   const [activeTab, setActiveTab] = useState<'mes-seances' | 'explorer' | 'favoris'>('mes-seances');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
+  
+  // Variable temporaire pour le nom d'utilisateur
+  const prenom = 'Utilisateur';
 
-  const prenom = user?.username || "Champion";
-
-  const handleCreateWorkout = async (workoutData: any) => {
+  const handleCreateWorkout = async (workoutData: WorkoutInsert) => {
     try {
       setCreating(true);
       await createWorkout(workoutData);
@@ -107,7 +105,7 @@ export default function WorkoutsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 pb-24">
         <div className="max-w-4xl mx-auto">
-          <ManualExerciseForm />
+          <ExerciseSelector />
         </div>
       </div>
     );
@@ -115,7 +113,6 @@ export default function WorkoutsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 pb-24">
-      <ExercisePreloader silent={true} />
       <div className="max-w-md mx-auto space-y-6">
         {/* Header avec navigation */}
         <div className="flex items-center justify-between mb-2">

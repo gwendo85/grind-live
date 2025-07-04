@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabaseBrowser } from '@/lib/supabaseClient';
 import { useUser } from './useUser';
 import type { Workout, WorkoutInsert, ExerciseLogInsert } from '@/lib/types';
@@ -10,7 +10,7 @@ export function useWorkouts() {
   const [error, setError] = useState<string | null>(null);
 
   // Charger les séances de l'utilisateur
-  const loadWorkouts = async () => {
+  const loadWorkouts = useCallback(async () => {
     if (!user) {
       setWorkouts([]);
       setLoading(false);
@@ -40,7 +40,7 @@ export function useWorkouts() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   // Créer une nouvelle séance
   const createWorkout = async (workoutData: WorkoutInsert) => {
@@ -173,8 +173,10 @@ export function useWorkouts() {
 
   // Charger les séances au montage et quand l'utilisateur change
   useEffect(() => {
-    loadWorkouts();
-  }, [user]);
+    if (user) {
+      loadWorkouts();
+    }
+  }, [user, loadWorkouts]);
 
   return {
     workouts,

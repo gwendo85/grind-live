@@ -60,7 +60,7 @@ export function CreateExerciseForm({ onExerciseCreated, onCancel }: CreateExerci
     }
 
     if (!formData.name.trim()) {
-      setError('Le nom de l\'exercice est requis');
+      setError('Le nom de l&apos;exercice est requis');
       return;
     }
 
@@ -166,10 +166,10 @@ export function CreateExerciseForm({ onExerciseCreated, onCancel }: CreateExerci
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Nom de l'exercice */}
+          {/* Nom de l&apos;exercice */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              Nom de l'exercice *
+              Nom de l&apos;exercice *
             </label>
             <Input
               value={formData.name}
@@ -325,7 +325,7 @@ export function CreateExerciseForm({ onExerciseCreated, onCancel }: CreateExerci
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Créer l'exercice
+                  Créer l&apos;exercice
                 </>
               )}
             </Button>
@@ -342,6 +342,12 @@ export function CreateExerciseForm({ onExerciseCreated, onCancel }: CreateExerci
             )}
           </div>
         </form>
+        <p className="text-sm text-gray-600">
+          Tu peux personnaliser cet exercice selon tes besoins
+        </p>
+        <p className="text-sm text-gray-600">
+          Tu peux maintenant ajouter cet exercice à ta séance
+        </p>
       </CardContent>
     </Card>
   );

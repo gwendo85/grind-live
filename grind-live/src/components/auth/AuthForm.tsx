@@ -224,11 +224,11 @@ export function AuthForm() {
             <TabsContent value="signup" className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-username">Nom d'utilisateur</Label>
+                  <Label htmlFor="signup-username">Nom d&apos;utilisateur</Label>
                   <Input
                     id="signup-username"
                     type="text"
-                    placeholder="Votre nom d'utilisateur"
+                    placeholder="Votre nom d&apos;utilisateur"
                     value={signUpData.username}
                     onChange={(e) => setSignUpData({ ...signUpData, username: e.target.value })}
                     required
@@ -289,6 +289,10 @@ export function AuthForm() {
               <p className="text-sm text-green-600">{message}</p>
             </div>
           )}
+
+          <p className="text-sm text-gray-600">
+            En continuant, tu acceptes nos conditions d&apos;utilisation
+          </p>
         </CardContent>
       </Card>
     </div>

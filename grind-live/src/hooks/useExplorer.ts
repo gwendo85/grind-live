@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabaseBrowser } from '@/lib/supabaseClient';
 
 export interface PublicWorkout {
@@ -26,7 +26,7 @@ export function useExplorer() {
   const [error, setError] = useState<string | null>(null);
 
   // Charger les séances publiques
-  const loadPublicWorkouts = async () => {
+  const loadPublicWorkouts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -52,10 +52,10 @@ export function useExplorer() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Charger les séances populaires (avec le plus de favoris)
-  const loadPopularWorkouts = async () => {
+  const loadPopularWorkouts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -81,18 +81,18 @@ export function useExplorer() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Charger toutes les données de l'explorateur
-  const loadExplorerData = async () => {
+  const loadExplorerData = useCallback(async () => {
     await Promise.all([
       loadPublicWorkouts(),
       loadPopularWorkouts()
     ]);
-  };
+  }, [loadPublicWorkouts, loadPopularWorkouts]);
 
   // Rechercher des séances
-  const searchWorkouts = async (query: string) => {
+  const searchWorkouts = useCallback(async (query: string) => {
     if (!query.trim()) {
       await loadPublicWorkouts();
       return;
@@ -123,15 +123,15 @@ export function useExplorer() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loadPublicWorkouts]);
 
   // Filtrer par difficulté
-  const filterByDifficulty = async (difficulty: string) => {
+  const filterByDifficulty = useCallback(async (difficulty: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseBrowser
         .from('workouts')
         .select(`
           *,
@@ -152,12 +152,12 @@ export function useExplorer() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Charger les données au montage
   useEffect(() => {
     loadExplorerData();
-  }, []);
+  }, [loadExplorerData]);
 
   return {
     publicWorkouts,

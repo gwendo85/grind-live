@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Play, Check, Pause, RotateCcw, SkipForward, Timer, Volume2, VolumeX, Bell, BellOff } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
@@ -106,26 +106,20 @@ export default function WorkoutDetailPage() {
     }
   }, []);
 
-  // Fonction pour vibrer
-  const vibrate = (pattern: number | number[] = 200) => {
+  const vibrate = useCallback(() => {
     if (vibrationEnabled && 'vibrate' in navigator) {
-      navigator.vibrate(pattern);
+      navigator.vibrate(200);
     }
-  };
+  }, [vibrationEnabled]);
 
-  // Fonction pour envoyer une notification
-  const sendNotification = (title: string, body: string) => {
+  const sendNotification = useCallback(() => {
     if (notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        tag: 'workout-notification',
-        requireInteraction: false,
-        silent: false,
+      new Notification('Grind Live', {
+        body: 'Séance terminée ! Félicitations !',
+        icon: '/icon-192x192.png'
       });
     }
-  };
+  }, [notificationsEnabled]);
 
   // Timer pour le temps de repos
   useEffect(() => {
@@ -140,13 +134,10 @@ export default function WorkoutDetailPage() {
               console.log("🔔 Temps de repos terminé !");
             }
             if (vibrationEnabled) {
-              vibrate([100, 50, 100, 50, 200]); // Pattern de fin
+              vibrate();
             }
             if (notificationsEnabled) {
-              sendNotification(
-                "Temps de repos terminé !",
-                `Prêt pour ${nextExercise?.name || "la fin de séance"} ?`
-              );
+              sendNotification();
             }
             setIsResting(false);
             setShowRestControls(false);
@@ -156,13 +147,10 @@ export default function WorkoutDetailPage() {
           // Alertes à 30s et 10s restantes
           if (prev === 30 || prev === 10) {
             if (vibrationEnabled) {
-              vibrate(100);
+              vibrate();
             }
             if (notificationsEnabled) {
-              sendNotification(
-                "Temps de repos",
-                `${prev} secondes restantes avant le prochain exercice`
-              );
+              sendNotification();
             }
           }
           
@@ -172,7 +160,7 @@ export default function WorkoutDetailPage() {
     }
 
     return () => clearInterval(interval);
-  }, [isResting, restTimeLeft, isPaused, soundEnabled, vibrationEnabled, notificationsEnabled, nextExercise, sendNotification, vibrate]);
+  }, [isResting, restTimeLeft, isPaused, soundEnabled, vibrationEnabled, notificationsEnabled, sendNotification, vibrate]);
 
   // Timer pour le temps total de séance
   useEffect(() => {
@@ -206,13 +194,10 @@ export default function WorkoutDetailPage() {
       console.log("⏰ Début du temps de repos");
     }
     if (vibrationEnabled) {
-      vibrate([50, 100, 50]); // Pattern de début
+      vibrate();
     }
     if (notificationsEnabled) {
-      sendNotification(
-        "Temps de repos",
-        `Repos de ${formatTime(currentExercise.restTime)} avant le prochain exercice`
-      );
+      sendNotification();
     }
   };
 
@@ -222,7 +207,7 @@ export default function WorkoutDetailPage() {
     setShowRestControls(false);
     
     if (vibrationEnabled) {
-      vibrate(100);
+      vibrate();
     }
   };
 
@@ -230,7 +215,7 @@ export default function WorkoutDetailPage() {
     setRestTimeLeft(Math.max(0, restTimeLeft + seconds));
     
     if (vibrationEnabled) {
-      vibrate(50);
+      vibrate();
     }
   };
 
@@ -240,7 +225,7 @@ export default function WorkoutDetailPage() {
     
     // Vibration de complétion
     if (vibrationEnabled) {
-      vibrate([100, 50, 100, 50, 100]);
+      vibrate();
     }
     
     if (exercise.currentSet < exercise.sets) {
@@ -251,10 +236,7 @@ export default function WorkoutDetailPage() {
       
       // Notification de fin d'exercice
       if (notificationsEnabled) {
-        sendNotification(
-          "Exercice terminé !",
-          `${exercise.name} complété - ${exercise.sets} séries réalisées`
-        );
+        sendNotification();
       }
       
       if (currentExerciseIndex < mockWorkout.exercises.length - 1) {
@@ -266,13 +248,10 @@ export default function WorkoutDetailPage() {
       } else {
         // Séance terminée
         if (vibrationEnabled) {
-          vibrate([200, 100, 200, 100, 500]); // Pattern de fin de séance
+          vibrate();
         }
         if (notificationsEnabled) {
-          sendNotification(
-            "Séance terminée ! 🎉",
-            `Félicitations ! Vous avez terminé ${mockWorkout.name}`
-          );
+          sendNotification();
         }
         setIsWorkoutActive(false);
         setIsResting(false);
