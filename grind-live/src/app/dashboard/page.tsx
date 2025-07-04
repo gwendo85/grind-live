@@ -7,6 +7,12 @@ import { Progress } from '@/components/ui/progress';
 import { Trophy, Target, TrendingUp, Users, Play, Plus, Calendar, Award, Bell } from 'lucide-react';
 import { useId } from 'react';
 import React, { useState } from 'react';
+import { useUser } from '@/hooks/useUser';
+import { useProgression } from '@/hooks/useProgression';
+import { useFeed } from '@/hooks/useFeed';
+import { useWorkouts } from '@/hooks/useWorkouts';
+import { useTabs } from '@/hooks/useTabs';
+import { useQuickActions } from '@/hooks/useQuickActions';
 // import { supabaseBrowser } from '@/lib/supabaseClient';
 // import type { User, Workout } from '@/lib/types';
 
@@ -24,16 +30,35 @@ const fakeWorkouts = [
 ];
 
 export default function DashboardPage() {
-  // Bypass auth : on affiche toujours le dashboard avec des données fictives
-  const user = fakeUser;
-  const recentWorkouts = fakeWorkouts;
-  const loading = false;
+  // Hooks centralisés
+  const { user, loading: userLoading, error: userError, logout } = useUser();
+  const { progression, loading: progressionLoading, error: progressionError } = useProgression();
+  const { feed, loading: feedLoading, error: feedError, toggleLike, addComment } = useFeed();
+  const { workouts, loading: workoutsLoading, error: workoutsError, addWorkout, removeWorkout } = useWorkouts();
+  const { actions } = useQuickActions();
+  const { activeTab, setActiveTab, isActive } = useTabs(['feed', 'progression', 'seance'], 'feed', 'dashboard-tab');
 
-  const xpToNextLevel = 100 - (user.xp % 100);
-  const progressPercentage = user.xp % 100;
+  // Gestion des erreurs critiques
+  if (userError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100">
+        <div className="text-center">
+          <div className="text-xl font-bold text-red-500 mb-2">Erreur de chargement</div>
+          <div className="text-gray-600 mb-4">{userError}</div>
+          <button onClick={() => window.location.reload()} className="bg-orange-500 text-white px-4 py-2 rounded-lg">
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Si pas d'utilisateur et pas en loading, afficher rien
+  if (!user && !userLoading) return null;
+
+  const xpToNextLevel = user ? 100 - (user.xp % 100) : 0;
+  const progressPercentage = user ? user.xp % 100 : 0;
   const gradientId = useId();
-
-  const [activeTab, setActiveTab] = useState<'feed' | 'progression' | 'seance'>('feed');
 
   // Données fictives pour le feed
   const feedPosts = [
@@ -76,7 +101,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <Bell className="w-9 h-9 text-gray-400" />
           <span className="inline-block w-10 h-10 rounded-full bg-gray-300 border-2 border-white overflow-hidden">
-            <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+            <img src={user?.avatar || ''} alt="avatar" className="w-full h-full object-cover" />
           </span>
         </div>
 
@@ -84,7 +109,7 @@ export default function DashboardPage() {
         <div className="rounded-3xl p-6 mb-4" style={{ background: `linear-gradient(135deg, #FF9100 0%, #FF6A00 100%)` }}>
           <div className="flex flex-col gap-3">
             <div className="text-white text-2xl font-extrabold leading-tight mb-2">
-              Salut, Champion ! <span role="img" aria-label="muscle">💪</span>
+              Salut, {user?.username || 'Champion'} ! <span role="img" aria-label="muscle">💪</span>
             </div>
             <div className="text-white text-base mb-4">Prêt à écraser cette séance ?</div>
             <div className="flex justify-end">
@@ -103,8 +128,14 @@ export default function DashboardPage() {
               <span className="font-semibold text-gray-600">Séances cette semaine</span>
               <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4h0a4 4 0 0 0-4 4v2" stroke="#FF9100" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="7" r="4" stroke="#FF9100" strokeWidth="2"/></svg>
             </div>
-            <div className="text-3xl font-extrabold text-gray-900">4</div>
-            <div className="text-green-600 text-sm font-bold flex items-center gap-1">+2 vs semaine dernière</div>
+            {progressionLoading ? (
+              <div className="text-3xl font-extrabold text-gray-300 animate-pulse">--</div>
+            ) : (
+              <>
+                <div className="text-3xl font-extrabold text-gray-900">{progression?.sessionsDone ?? 0}</div>
+                <div className="text-green-600 text-sm font-bold flex items-center gap-1">{progression ? `+${progression.sessionsDone - 2} vs semaine dernière` : ''}</div>
+              </>
+            )}
           </div>
           {/* Temps total */}
           <div className="bg-white rounded-2xl shadow p-4 flex flex-col justify-between">
@@ -112,8 +143,14 @@ export default function DashboardPage() {
               <span className="font-semibold text-gray-600">Temps total</span>
               <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#FF9100" strokeWidth="2"/><path d="M12 6v6l4 2" stroke="#FF9100" strokeWidth="2" strokeLinecap="round"/></svg>
             </div>
-            <div className="text-3xl font-extrabold text-gray-900">6h<br/>45m</div>
-            <div className="text-green-600 text-sm font-bold flex items-center gap-1">+45m</div>
+            {progressionLoading ? (
+              <div className="text-3xl font-extrabold text-gray-300 animate-pulse">--</div>
+            ) : (
+              <>
+                <div className="text-3xl font-extrabold text-gray-900">{progression?.timeDone ?? 0}h</div>
+                <div className="text-green-600 text-sm font-bold flex items-center gap-1">+45m</div>
+              </>
+            )}
           </div>
           {/* PR ce mois */}
           <div className="bg-white rounded-2xl shadow p-4 flex flex-col justify-between">
@@ -139,18 +176,12 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl shadow p-4">
           <div className="font-bold text-xl text-gray-900 mb-3">Actions rapides</div>
           <div className="flex flex-col gap-3">
-            <button className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 font-medium text-base hover:bg-gray-50 transition">
-              <span className="text-2xl font-bold">+</span>
-              Ajouter un exercice
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 font-medium text-base hover:bg-gray-50 transition">
-              <Users className="w-5 h-5 text-gray-500" />
-              Inviter des amis
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 font-medium text-base hover:bg-gray-50 transition">
-              <TrendingUp className="w-5 h-5 text-gray-500" />
-              Voir les stats
-            </button>
+            {actions.map((action) => (
+              <button key={action.id} className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 font-medium text-base hover:bg-gray-50 transition" onClick={action.onClick}>
+                {action.icon}
+                {action.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -173,9 +204,18 @@ export default function DashboardPage() {
             <TrendingUp className="h-5 w-5 text-green-500" />
             <span className="font-semibold text-gray-700">Séances récentes</span>
           </div>
-          {recentWorkouts.length > 0 ? (
+          {workoutsLoading ? (
             <div className="space-y-3">
-              {recentWorkouts.map((workout) => (
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                  <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
+                </div>
+              ))}
+            </div>
+          ) : workouts.length > 0 ? (
+            <div className="space-y-3">
+              {workouts.map((workout: { id: string; name: string; created_at: string }) => (
                 <div key={workout.id} className="flex items-center justify-between">
                   <span className="font-medium text-gray-800">{workout.name}</span>
                   <span className="text-xs text-gray-400">{workout.created_at}</span>
@@ -191,19 +231,19 @@ export default function DashboardPage() {
         <div className="pt-2">
           <div className="flex bg-gray-100 rounded-2xl p-1 mb-4">
             <button
-              className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${activeTab === 'feed' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
+              className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${isActive('feed') ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
               onClick={() => setActiveTab('feed')}
             >
               <Users className="w-5 h-5" /> Feed
             </button>
             <button
-              className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${activeTab === 'progression' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
+              className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${isActive('progression') ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
               onClick={() => setActiveTab('progression')}
             >
               <TrendingUp className="w-5 h-5" /> Progression
             </button>
             <button
-              className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${activeTab === 'seance' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
+              className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${isActive('seance') ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
               onClick={() => setActiveTab('seance')}
             >
               <Play className="w-5 h-5" /> Séance
@@ -211,89 +251,130 @@ export default function DashboardPage() {
           </div>
 
           {/* Contenu dynamique selon l'onglet */}
-          {activeTab === 'feed' && (
+          {isActive('feed') && (
             <div className="space-y-4">
-              {feedPosts.map((post, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm flex flex-col gap-2">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${post.avatarColor}`}>{post.avatar}</span>
-                    <div className="flex-1">
-                      <span className="font-bold text-lg text-gray-900 mr-2">{post.user}</span>
-                      {post.badge && (
-                        <span className="text-orange-600 font-semibold text-sm ml-1">{post.badgeIcon} {post.badge}</span>
-                      )}
-                      <div className="text-gray-400 text-xs font-medium">{post.time}</div>
+              {feedLoading ? (
+                // Placeholders pour le feed en loading
+                [1, 2].map((i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-32 mb-1"></div>
+                        <div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div>
+                      </div>
+                    </div>
+                    <div className="h-5 bg-gray-200 rounded animate-pulse w-48 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-full mb-3"></div>
+                    <div className="flex gap-4 pt-2 border-t border-gray-100">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-8"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-8"></div>
                     </div>
                   </div>
-                  <div className="font-bold text-gray-900 text-lg mb-1">{post.title} <span>{post.emoji}</span> <span className="font-normal text-gray-500 text-base ml-2">· {post.duration}</span></div>
-                  <div className="text-gray-500 text-base mb-2">{post.details}</div>
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-gray-400 text-base">
-                    <span className="flex items-center gap-1"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> {post.likes}</span>
-                    <span className="flex items-center gap-1"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> {post.comments}</span>
-                    <span className="flex items-center gap-1"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="16 6 12 2 8 6" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
+                ))
+              ) : (
+                feed.map((post) => (
+                  <div key={post.id} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm flex flex-col gap-2">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg bg-orange-100 text-orange-500`}>{post.avatar}</span>
+                      <div className="flex-1">
+                        <span className="font-bold text-lg text-gray-900 mr-2">{post.user}</span>
+                        {post.badge && (
+                          <span className="text-orange-600 font-semibold text-sm ml-1">{post.badgeIcon} {post.badge}</span>
+                        )}
+                        <div className="text-gray-400 text-xs font-medium">{post.time}</div>
+                      </div>
+                    </div>
+                    <div className="font-bold text-gray-900 text-lg mb-1">{post.title} <span>{post.emoji}</span> <span className="font-normal text-gray-500 text-base ml-2">· {post.duration}</span></div>
+                    <div className="text-gray-500 text-base mb-2">{post.details}</div>
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-gray-400 text-base">
+                      <button className="flex items-center gap-1" onClick={() => toggleLike(post.id)}><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> {post.likes}</button>
+                      <button className="flex items-center gap-1" onClick={() => addComment(post.id)}><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> {post.comments}</button>
+                      <span className="flex items-center gap-1"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="16 6 12 2 8 6" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
 
-          {activeTab === 'progression' && (
+          {isActive('progression') && (
             <div className="space-y-4">
-              {/* Objectif séances mensuelles */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-900 leading-tight">Objectif séances<br/>mensuelles</span>
-                  <span className="text-gray-500 text-lg font-semibold text-right">16/20<br/><span className="text-sm font-normal">séances</span></span>
-                </div>
-                <div className="mt-2 mb-1">
-                  <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-3 rounded-full bg-orange-500 transition-all" style={{ width: '80%' }}></div>
+              {progressionLoading ? (
+                // Placeholders pour la progression en loading
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="h-5 bg-gray-200 rounded animate-pulse w-32"></div>
+                      <div className="h-5 bg-gray-200 rounded animate-pulse w-16"></div>
+                    </div>
+                    <div className="h-3 bg-gray-200 rounded-full animate-pulse mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-20 ml-auto"></div>
                   </div>
-                </div>
-                <div className="text-right text-orange-500 font-bold text-base">80% complété</div>
-              </div>
-              {/* Volume d'entraînement */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-900 leading-tight">Volume d'entraînement</span>
-                  <span className="text-gray-500 text-lg font-semibold text-right">8500/10000<br/><span className="text-sm font-normal">kg</span></span>
-                </div>
-                <div className="mt-2 mb-1">
-                  <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-3 rounded-full bg-orange-500 transition-all" style={{ width: '85%' }}></div>
+                ))
+              ) : progression ? (
+                <>
+                  {/* Objectif séances mensuelles */}
+                  <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-gray-900 leading-tight">Objectif séances<br/>mensuelles</span>
+                      <span className="text-gray-500 text-lg font-semibold text-right">{progression.sessionsDone}/{progression.sessionsGoal}<br/><span className="text-sm font-normal">séances</span></span>
+                    </div>
+                    <div className="mt-2 mb-1">
+                      <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
+                        <div className="h-3 rounded-full bg-orange-500 transition-all" style={{ width: `${progression.sessionsPercent}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="text-right text-orange-500 font-bold text-base">{progression.sessionsPercent}% complété</div>
                   </div>
-                </div>
-                <div className="text-right text-orange-500 font-bold text-base">85% complété</div>
-              </div>
-              {/* Temps d'entraînement */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-900 leading-tight">Temps d'entraînement</span>
-                  <span className="text-gray-500 text-lg font-semibold text-right">24/30<br/><span className="text-sm font-normal">heures</span></span>
-                </div>
-                <div className="mt-2 mb-1">
-                  <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-3 rounded-full bg-orange-500 transition-all" style={{ width: '80%' }}></div>
+                  {/* Volume d'entraînement */}
+                  <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-gray-900 leading-tight">Volume d'entraînement</span>
+                      <span className="text-gray-500 text-lg font-semibold text-right">{progression.volumeDone}/{progression.volumeGoal}<br/><span className="text-sm font-normal">kg</span></span>
+                    </div>
+                    <div className="mt-2 mb-1">
+                      <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
+                        <div className="h-3 rounded-full bg-orange-500 transition-all" style={{ width: `${progression.volumePercent}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="text-right text-orange-500 font-bold text-base">{progression.volumePercent}% complété</div>
                   </div>
+                  {/* Temps d'entraînement */}
+                  <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-gray-900 leading-tight">Temps d'entraînement</span>
+                      <span className="text-gray-500 text-lg font-semibold text-right">{progression.timeDone}/{progression.timeGoal}<br/><span className="text-sm font-normal">heures</span></span>
+                    </div>
+                    <div className="mt-2 mb-1">
+                      <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
+                        <div className="h-3 rounded-full bg-orange-500 transition-all" style={{ width: `${progression.timePercent}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="text-right text-orange-500 font-bold text-base">{progression.timePercent}% complété</div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  Erreur de chargement de la progression
                 </div>
-                <div className="text-right text-orange-500 font-bold text-base">80% complété</div>
-              </div>
+              )}
             </div>
           )}
 
-          {activeTab === 'seance' && (
+          {isActive('seance') && (
             <div className="space-y-6">
               {/* Boutons de séance */}
               <div>
                 <div className="font-bold text-xl text-gray-900 mb-3">Commencer une séance</div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                  <button className="rounded-xl bg-orange-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-orange-600 transition"><Play className="w-6 h-6" />Push Day</button>
-                  <button className="rounded-xl bg-red-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-red-600 transition"><TrendingUp className="w-6 h-6" />Pull Day</button>
-                  <button className="rounded-xl bg-blue-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-blue-600 transition"><Calendar className="w-6 h-6" />Leg Day</button>
-                  <button className="rounded-xl bg-green-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-green-600 transition"><Award className="w-6 h-6" />Personnalisé</button>
+                  <button className="rounded-xl bg-orange-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-orange-600 transition" onClick={() => addWorkout('Push Day')}><Play className="w-6 h-6" />Push Day</button>
+                  <button className="rounded-xl bg-red-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-red-600 transition" onClick={() => addWorkout('Pull Day')}><TrendingUp className="w-6 h-6" />Pull Day</button>
+                  <button className="rounded-xl bg-blue-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-blue-600 transition" onClick={() => addWorkout('Leg Day')}><Calendar className="w-6 h-6" />Leg Day</button>
+                  <button className="rounded-xl bg-green-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-green-600 transition" onClick={() => addWorkout('Personnalisé')}><Award className="w-6 h-6" />Personnalisé</button>
                 </div>
               </div>
-              {/* Récompenses récentes */}
+              {/* Récompenses récentes (statique pour l'instant) */}
               <div>
                 <div className="font-bold text-xl text-gray-900 mb-3">Récompenses récentes</div>
                 <div className="space-y-3">
