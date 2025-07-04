@@ -1,8 +1,10 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Avatar, AvatarFallback } from "../../components/ui/avatar";
 import { Button } from "../../components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const mockFeed = [
   {
@@ -41,8 +43,12 @@ export default function SocialPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4">
       <div className="max-w-md mx-auto space-y-6">
-        {/* Header */}
+        {/* Header avec navigation */}
         <div className="flex items-center justify-between mb-2">
+          <Link href="/dashboard" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <ArrowLeft size={20} />
+            <span className="text-sm font-medium">Dashboard</span>
+          </Link>
           <span className="inline-block w-8 h-8 rounded-full bg-gray-300 border-2 border-white overflow-hidden">
             <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">
               {prenom.charAt(0)}

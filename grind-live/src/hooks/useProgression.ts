@@ -38,11 +38,7 @@ export function useProgression() {
         // Simuler un chargement (remplacer par Supabase ensuite)
         await new Promise(resolve => setTimeout(resolve, 400));
         
-        // Simuler une erreur aléatoire pour tester (à supprimer en prod)
-        if (Math.random() < 0.05) {
-          throw new Error('Erreur de chargement progression');
-        }
-        
+        // Suppression de la simulation d'erreur aléatoire
         setProgression(mockProgression);
       } catch (err) {
         console.error('Erreur useProgression:', err);

@@ -38,10 +38,24 @@ export function useUser() {
         setError(null);
         
         console.log('🔍 useUser: Vérification de la session...');
+        
+        // Vérifier d'abord si on est côté client
+        if (typeof window === 'undefined') {
+          console.log('ℹ️ useUser: Côté serveur, pas de session');
+          setUser(null);
+          return;
+        }
+        
         const { data: { user: authUser }, error: authError } = await supabaseBrowser.auth.getUser();
         
         if (authError) {
-          console.error('❌ useUser: Erreur auth:', authError);
+          console.warn('⚠️ useUser: Erreur auth (normal si non connecté):', authError.message);
+          // Ne pas traiter comme une erreur critique si c'est juste "pas de session"
+          if (authError.message.includes('session') || authError.message.includes('token')) {
+            console.log('ℹ️ useUser: Aucune session active');
+            setUser(null);
+            return;
+          }
           setError(authError.message);
           return;
         }
@@ -86,7 +100,13 @@ export function useUser() {
         
       } catch (err) {
         console.error('❌ useUser: Erreur inattendue:', err);
-        setError(err instanceof Error ? err.message : 'Erreur inconnue');
+        // Ne pas bloquer l'application pour les erreurs d'auth
+        if (err instanceof Error && err.message.includes('auth')) {
+          console.log('ℹ️ useUser: Erreur auth non critique, utilisateur non connecté');
+          setUser(null);
+        } else {
+          setError(err instanceof Error ? err.message : 'Erreur inconnue');
+        }
       } finally {
         setLoading(false);
       }

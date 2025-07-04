@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
-export function useTabs<T extends string>(tabs: T[], defaultTab: T, storageKey?: string) {
+export function useTabs(tabs: string[], defaultTab: string, storageKey?: string) {
   // Validation des paramètres avec useMemo pour éviter les recalculs
   const validatedConfig = useMemo(() => {
     if (!Array.isArray(tabs) || tabs.length === 0) {
       console.warn('⚠️ useTabs: tabs doit être un tableau non vide');
       return {
-        tabs: [] as T[],
+        tabs: [] as string[],
         defaultTab: defaultTab,
         isValid: false
       };
@@ -28,7 +28,7 @@ export function useTabs<T extends string>(tabs: T[], defaultTab: T, storageKey?:
     };
   }, [tabs, defaultTab]);
 
-  const [activeTab, setActiveTab] = useState<T>(validatedConfig.defaultTab);
+  const [activeTab, setActiveTab] = useState<string>(validatedConfig.defaultTab);
 
   console.log('🔍 useTabs: Initialisation avec', { 
     tabs: validatedConfig.tabs, 
@@ -38,7 +38,7 @@ export function useTabs<T extends string>(tabs: T[], defaultTab: T, storageKey?:
   });
 
   // Fonction stable pour changer d'onglet
-  const setActiveTabStable = useCallback((tab: T) => {
+  const setActiveTabStable = useCallback((tab: string) => {
     if (validatedConfig.tabs.includes(tab)) {
       console.log('💾 useTabs: Changement d\'onglet vers:', tab);
       setActiveTab(tab);
@@ -47,38 +47,11 @@ export function useTabs<T extends string>(tabs: T[], defaultTab: T, storageKey?:
     }
   }, [validatedConfig.tabs]);
 
-  // Persistance dans le localStorage si storageKey fourni
-  useEffect(() => {
-    if (!storageKey || typeof window === 'undefined' || !validatedConfig.isValid) return;
-    
-    try {
-      console.log('🔍 useTabs: Lecture localStorage pour', storageKey);
-      const saved = window.localStorage.getItem(storageKey);
-      if (saved && validatedConfig.tabs.includes(saved as T)) {
-        console.log('✅ useTabs: Tab restauré:', saved);
-        setActiveTab(saved as T);
-      }
-    } catch (error) {
-      console.warn('⚠️ useTabs: Erreur lors de la lecture du localStorage:', error);
-    }
-  }, [storageKey, validatedConfig.tabs, validatedConfig.isValid]);
-
-  useEffect(() => {
-    if (!storageKey || typeof window === 'undefined' || !validatedConfig.isValid) return;
-    
-    try {
-      console.log('💾 useTabs: Sauvegarde localStorage:', activeTab);
-      window.localStorage.setItem(storageKey, activeTab);
-    } catch (error) {
-      console.warn('⚠️ useTabs: Erreur lors de l\'écriture dans le localStorage:', error);
-    }
-  }, [activeTab, storageKey, validatedConfig.isValid]);
-
   // Retourner un objet stable
   return useMemo(() => ({
     activeTab,
     setActiveTab: setActiveTabStable,
-    isActive: (tab: T) => activeTab === tab,
+    isActive: (tab: string) => activeTab === tab,
     tabs: validatedConfig.tabs,
   }), [activeTab, setActiveTabStable, validatedConfig.tabs]);
 } 
