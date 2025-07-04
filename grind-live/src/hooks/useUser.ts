@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { supabaseBrowser } from '@/lib/supabaseClient';
+import type { User } from '@/lib/types';
 
 // Type utilisateur (à adapter selon Supabase plus tard)
 export interface User {
@@ -28,22 +30,62 @@ export function useUser() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🔍 useUser: Début du chargement');
+    
     const fetchUser = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Simuler un chargement (remplacer par Supabase ensuite)
-        await new Promise(resolve => setTimeout(resolve, 400));
+        console.log('🔍 useUser: Vérification de la session...');
+        const { data: { user: authUser }, error: authError } = await supabaseBrowser.auth.getUser();
         
-        // Simuler une erreur aléatoire pour tester (à supprimer en prod)
-        if (Math.random() < 0.1) {
-          throw new Error('Erreur de chargement utilisateur');
+        if (authError) {
+          console.error('❌ useUser: Erreur auth:', authError);
+          setError(authError.message);
+          return;
         }
         
-        setUser(mockUser);
+        if (!authUser) {
+          console.log('ℹ️ useUser: Aucun utilisateur connecté');
+          setUser(null);
+          return;
+        }
+        
+        console.log('🔍 useUser: Récupération du profil...');
+        const { data: profile, error: profileError } = await supabaseBrowser
+          .from('users')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+        
+        if (profileError) {
+          console.warn('⚠️ useUser: Profil non trouvé, création d\'un profil par défaut');
+          
+          // Créer un profil par défaut
+          const defaultProfile: User = {
+            id: authUser.id,
+            email: authUser.email || '',
+            username: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Utilisateur',
+            avatar_url: authUser.user_metadata?.avatar_url || null,
+            xp: 0,
+            level: 1,
+            bio: null,
+            goal: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          
+          console.log('✅ useUser: Profil par défaut créé:', defaultProfile);
+          setUser(defaultProfile);
+          return;
+        }
+        
+        console.log('✅ useUser: Profil chargé:', profile);
+        setUser(profile);
+        
       } catch (err) {
-        console.error('Erreur useUser:', err);
+        console.error('❌ useUser: Erreur inattendue:', err);
         setError(err instanceof Error ? err.message : 'Erreur inconnue');
       } finally {
         setLoading(false);

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Zap } from "lucide-react";
+import Image from "next/image";
 
 const prenom = "Thomas";
 
@@ -35,7 +35,11 @@ export default function WorkoutsPage() {
       <div className="max-w-md mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
-          <span className="inline-block w-8 h-8 rounded-full bg-gray-300 border-2 border-white overflow-hidden"><img src="https://randomuser.me/api/portraits/men/32.jpg" alt="avatar" /></span>
+          <span className="inline-block w-8 h-8 rounded-full bg-gray-300 border-2 border-white overflow-hidden">
+            <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">
+              {prenom.charAt(0)}
+            </div>
+          </span>
         </div>
 
         {/* Message de bienvenue */}
@@ -80,7 +84,7 @@ export default function WorkoutsPage() {
                     <span className="text-xs text-gray-400">{w.duration}</span>
                   </div>
                   <button className="mt-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg text-sm shadow flex items-center gap-2 self-end">
-                    <Zap className="w-4 h-4" /> Démarrer
+                    Démarrer
                   </button>
                 </div>
               ))}

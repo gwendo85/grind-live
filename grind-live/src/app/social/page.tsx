@@ -1,9 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
+import Image from "next/image";
+import { Avatar, AvatarFallback } from "../../components/ui/avatar";
 import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import { Zap } from "lucide-react";
 
 const mockFeed = [
   {
@@ -44,13 +43,17 @@ export default function SocialPage() {
       <div className="max-w-md mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
-          <span className="inline-block w-8 h-8 rounded-full bg-gray-300 border-2 border-white overflow-hidden"><img src="https://randomuser.me/api/portraits/men/32.jpg" alt="avatar" /></span>
+          <span className="inline-block w-8 h-8 rounded-full bg-gray-300 border-2 border-white overflow-hidden">
+            <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">
+              {prenom.charAt(0)}
+            </div>
+          </span>
         </div>
 
         {/* Message de bienvenue */}
         <div className="mb-2">
           <h2 className="text-2xl font-bold flex items-center gap-2"><span>👋</span> Salut, {prenom} !</h2>
-          <p className="text-gray-600 text-base">Prêt à découvrir l'activité de ta communauté&nbsp;?</p>
+          <p className="text-gray-600 text-base">Prêt à découvrir l&apos;activité de ta communauté&nbsp;?</p>
         </div>
 
         {/* Tabs */}

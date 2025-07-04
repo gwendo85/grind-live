@@ -22,17 +22,12 @@ export function useWorkouts() {
         setLoading(true);
         setError(null);
         
-        // Simuler un chargement (remplacer par Supabase ensuite)
-        await new Promise(resolve => setTimeout(resolve, 400));
-        
-        // Simuler une erreur aléatoire pour tester (à supprimer en prod)
-        if (Math.random() < 0.05) {
-          throw new Error('Erreur de chargement séances');
-        }
+        // Simuler un délai de chargement
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         setWorkouts(mockWorkouts);
       } catch (err) {
-        console.error('Erreur useWorkouts:', err);
+        console.error('Erreur lors du chargement des séances:', err);
         setError(err instanceof Error ? err.message : 'Erreur inconnue');
       } finally {
         setLoading(false);

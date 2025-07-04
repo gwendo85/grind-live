@@ -70,7 +70,7 @@ const mockWorkout = {
   ],
 };
 
-export default function WorkoutDetailPage({ params }: { params: { id: string } }) {
+export default function WorkoutDetailPage() {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isResting, setIsResting] = useState(false);
@@ -81,7 +81,7 @@ export default function WorkoutDetailPage({ params }: { params: { id: string } }
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [showRestControls, setShowRestControls] = useState(false);
-  const [nextExercise, setNextExercise] = useState<any>(null);
+  const [nextExercise, setNextExercise] = useState<{ id: number; name: string } | null>(null);
 
   const currentExercise = mockWorkout.exercises[currentExerciseIndex];
 
@@ -172,7 +172,7 @@ export default function WorkoutDetailPage({ params }: { params: { id: string } }
     }
 
     return () => clearInterval(interval);
-  }, [isResting, restTimeLeft, isPaused, soundEnabled, vibrationEnabled, notificationsEnabled, nextExercise]);
+  }, [isResting, restTimeLeft, isPaused, soundEnabled, vibrationEnabled, notificationsEnabled, nextExercise, sendNotification, vibrate]);
 
   // Timer pour le temps total de séance
   useEffect(() => {

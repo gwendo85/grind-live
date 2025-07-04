@@ -1,12 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Trophy, Target, TrendingUp, Users, Play, Plus, Calendar, Award, Bell } from 'lucide-react';
-import { useId } from 'react';
-import React, { useState } from 'react';
+import { Trophy, TrendingUp, Users, Play, Calendar, Award, Bell } from 'lucide-react';
+import React, { useMemo } from 'react';
+import Image from 'next/image';
 import { useUser } from '@/hooks/useUser';
 import { useProgression } from '@/hooks/useProgression';
 import { useFeed } from '@/hooks/useFeed';
@@ -16,30 +12,37 @@ import { useQuickActions } from '@/hooks/useQuickActions';
 // import { supabaseBrowser } from '@/lib/supabaseClient';
 // import type { User, Workout } from '@/lib/types';
 
-// Faux utilisateur pour bypass auth
-const fakeUser = {
-  username: "TestUser",
-  xp: 250,
-  level: 3,
-  goal: "Prendre du muscle",
-  avatar: "https://randomuser.me/api/portraits/men/32.jpg"
-};
-const fakeWorkouts = [
-  { id: 1, name: "Push Day", created_at: "2024-07-01" },
-  { id: 2, name: "Legs", created_at: "2024-07-02" },
-];
-
 export default function DashboardPage() {
-  // Hooks centralisés
-  const { user, loading: userLoading, error: userError, logout } = useUser();
-  const { progression, loading: progressionLoading, error: progressionError } = useProgression();
-  const { feed, loading: feedLoading, error: feedError, toggleLike, addComment } = useFeed();
-  const { workouts, loading: workoutsLoading, error: workoutsError, addWorkout, removeWorkout } = useWorkouts();
+  console.log('🔍 DashboardPage: Rendu du composant');
+
+  // Hooks centralisés avec protection d'erreur
+  const { user, loading: userLoading, error: userError } = useUser();
+  const { progression, loading: progressionLoading } = useProgression();
+  const { feed, loading: feedLoading, toggleLike, addComment } = useFeed();
+  const { workouts, loading: workoutsLoading, addWorkout } = useWorkouts();
   const { actions } = useQuickActions();
-  const { activeTab, setActiveTab, isActive } = useTabs(['feed', 'progression', 'seance'], 'feed', 'dashboard-tab');
+  
+  // Stabilisation des données pour useTabs
+  const tabsConfig = useMemo(() => ({
+    tabs: ['feed', 'progression', 'seance'] as string[],
+    defaultTab: 'feed' as string,
+    storageKey: 'dashboard-tab'
+  }), []);
+
+  const { setActiveTab, isActive } = useTabs(tabsConfig.tabs, tabsConfig.defaultTab, tabsConfig.storageKey);
+
+  console.log('🔍 DashboardPage: État des hooks', {
+    userLoading,
+    userError,
+    progressionLoading,
+    feedLoading,
+    workoutsLoading,
+    user: user ? 'connecté' : 'non connecté'
+  });
 
   // Gestion des erreurs critiques
   if (userError) {
+    console.error('❌ DashboardPage: Erreur utilisateur:', userError);
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100">
         <div className="text-center">
@@ -54,46 +57,27 @@ export default function DashboardPage() {
   }
 
   // Si pas d'utilisateur et pas en loading, afficher rien
-  if (!user && !userLoading) return null;
+  if (!user && !userLoading) {
+    console.log('ℹ️ DashboardPage: Aucun utilisateur, redirection vers auth');
+    return null;
+  }
 
-  const xpToNextLevel = user ? 100 - (user.xp % 100) : 0;
-  const progressPercentage = user ? user.xp % 100 : 0;
-  const gradientId = useId();
+  // Éviter les re-renders pendant le chargement initial
+  if (userLoading || progressionLoading || feedLoading || workoutsLoading) {
+    console.log('⏳ DashboardPage: Chargement en cours...');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-2">
+        <div className="max-w-md mx-auto space-y-6">
+          <div className="text-center">
+            <div className="text-xl font-bold text-gray-700 mb-2">Chargement...</div>
+            <div className="text-gray-500">Préparation de ton dashboard</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  // Données fictives pour le feed
-  const feedPosts = [
-    {
-      user: 'Alex_Muscle',
-      badge: 'Nouveau PR !',
-      badgeIcon: <Trophy className="inline w-4 h-4 text-orange-500 mb-0.5" />, 
-      time: 'Il y a 2h',
-      title: 'Push Day',
-      emoji: '💪',
-      duration: '1h 30m',
-      details: 'Développé couché · Dips · Épaules · Triceps',
-      likes: 24,
-      comments: 5,
-      shares: 0,
-      avatar: 'A',
-      avatarColor: 'bg-orange-100 text-orange-500',
-    },
-    {
-      user: 'Sophie_Fit',
-      badge: '',
-      badgeIcon: null,
-      time: 'Il y a 4h',
-      title: 'Leg Day',
-      emoji: '🔥',
-      duration: '1h 15m',
-      details: 'Squat · Soulevé de terre · Fentes · Mollets',
-      likes: 18,
-      comments: 3,
-      shares: 0,
-      avatar: 'S',
-      avatarColor: 'bg-orange-50 text-orange-400',
-    },
-  ];
-
+  console.log('✅ DashboardPage: Rendu normal');
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-2">
       <div className="max-w-md mx-auto space-y-6">
@@ -101,7 +85,13 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <Bell className="w-9 h-9 text-gray-400" />
           <span className="inline-block w-10 h-10 rounded-full bg-gray-300 border-2 border-white overflow-hidden">
-            <img src={user?.avatar || ''} alt="avatar" className="w-full h-full object-cover" />
+            {user?.avatar_url ? (
+              <Image src={user.avatar_url} alt="avatar" width={40} height={40} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">
+                {user?.username?.charAt(0) || 'U'}
+              </div>
+            )}
           </span>
         </div>
 
@@ -206,7 +196,7 @@ export default function DashboardPage() {
           </div>
           {workoutsLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3].map((i: number) => (
                 <div key={i} className="flex items-center justify-between">
                   <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
                   <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
@@ -255,7 +245,7 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {feedLoading ? (
                 // Placeholders pour le feed en loading
-                [1, 2].map((i) => (
+                [1, 2].map((i: number) => (
                   <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
@@ -330,7 +320,7 @@ export default function DashboardPage() {
                   {/* Volume d'entraînement */}
                   <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-gray-900 leading-tight">Volume d'entraînement</span>
+                      <span className="font-bold text-gray-900 leading-tight">Volume d&apos;entraînement</span>
                       <span className="text-gray-500 text-lg font-semibold text-right">{progression.volumeDone}/{progression.volumeGoal}<br/><span className="text-sm font-normal">kg</span></span>
                     </div>
                     <div className="mt-2 mb-1">
@@ -343,7 +333,7 @@ export default function DashboardPage() {
                   {/* Temps d'entraînement */}
                   <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-gray-900 leading-tight">Temps d'entraînement</span>
+                      <span className="font-bold text-gray-900 leading-tight">Temps d&apos;entraînement</span>
                       <span className="text-gray-500 text-lg font-semibold text-right">{progression.timeDone}/{progression.timeGoal}<br/><span className="text-sm font-normal">heures</span></span>
                     </div>
                     <div className="mt-2 mb-1">

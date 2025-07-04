@@ -1,3 +1,4 @@
+import React from 'react';
 import { Plus, Users, BarChart2 } from 'lucide-react';
 
 export interface QuickAction {

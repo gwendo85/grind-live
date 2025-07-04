@@ -8,14 +8,14 @@ export default function AuthForm() {
   return (
     <div className="w-full max-w-md mx-auto">
       <Auth
-        supabaseClient={supabaseBrowser()}
+        supabaseClient={supabaseBrowser}
         appearance={{
           theme: ThemeSupa,
           variables: {
             default: {
               colors: {
-                brand: 'hsl(var(--primary))',
-                brandAccent: 'hsl(var(--primary-foreground))',
+                brand: '#f97316',
+                brandAccent: '#f59e42',
               },
             },
           },
@@ -24,7 +24,7 @@ export default function AuthForm() {
         redirectTo={`${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`}
         showLinks={true}
         view="magic_link"
-        theme="dark"
+        theme="light"
       />
     </div>
   );

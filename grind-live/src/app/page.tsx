@@ -1,4 +1,3 @@
-import { Zap, Brain, Users, Dumbbell, LogOut } from 'lucide-react';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -80,12 +79,6 @@ export default function HomePage() {
         {/* Texte bas */}
         <div className="text-[#B0B8C1] text-base mt-1">Rejoins ceux qui partagent les mêmes valeurs</div>
       </section>
-      {/* Bouton déconnexion en bas sur mobile */}
-      <div className="w-full flex justify-end pr-6 pb-6 md:hidden">
-        <button className="bg-[#FF6A00] rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-transform active:scale-90 active:shadow-inner">
-          <LogOut className="w-6 h-6 text-white" />
-        </button>
-      </div>
     </div>
   );
 }
