@@ -90,6 +90,17 @@ export function useUser() {
             updated_at: new Date().toISOString(),
           };
           
+          // Insérer le profil dans la base de données
+          const { error: insertError } = await supabaseBrowser
+            .from('users')
+            .insert(defaultProfile);
+          
+          if (insertError) {
+            console.error('❌ useUser: Erreur lors de la création du profil:', insertError);
+            setError('Erreur lors de la création du profil');
+            return;
+          }
+          
           console.log('✅ useUser: Profil par défaut créé:', defaultProfile);
           setUser(defaultProfile);
           return;
@@ -113,12 +124,43 @@ export function useUser() {
     };
 
     fetchUser();
+
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔍 useUser: Changement d\'état auth:', event, session?.user?.id);
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Recharger l'utilisateur quand il se connecte
+          await fetchUser();
+        } else if (event === 'SIGNED_OUT') {
+          // Vider l'utilisateur quand il se déconnecte
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Pour la déconnexion, etc. (à compléter)
-  const logout = () => {
-    setUser(null);
-    console.log('User logged out');
+  // Fonction de déconnexion
+  const logout = async () => {
+    try {
+      const { error } = await supabaseBrowser.auth.signOut();
+      if (error) {
+        console.error('❌ useUser: Erreur lors de la déconnexion:', error);
+        setError(error.message);
+      } else {
+        console.log('✅ useUser: Déconnexion réussie');
+        setUser(null);
+      }
+    } catch (err) {
+      console.error('❌ useUser: Erreur inattendue lors de la déconnexion:', err);
+      setError(err instanceof Error ? err.message : 'Erreur lors de la déconnexion');
+    }
   };
 
   return { user, loading, error, logout };

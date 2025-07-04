@@ -53,6 +53,10 @@ export type Database = {
           notes: string | null;
           status: 'draft' | 'in_progress' | 'completed' | 'live';
           is_live: boolean;
+          is_public: boolean;
+          difficulty: string | null;
+          estimated_duration: number | null;
+          exercise_count: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -66,6 +70,10 @@ export type Database = {
           notes?: string | null;
           status?: 'draft' | 'in_progress' | 'completed' | 'live';
           is_live?: boolean;
+          is_public?: boolean;
+          difficulty?: string | null;
+          estimated_duration?: number | null;
+          exercise_count?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -79,6 +87,10 @@ export type Database = {
           notes?: string | null;
           status?: 'draft' | 'in_progress' | 'completed' | 'live';
           is_live?: boolean;
+          is_public?: boolean;
+          difficulty?: string | null;
+          estimated_duration?: number | null;
+          exercise_count?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -86,29 +98,35 @@ export type Database = {
       exercises: {
         Row: {
           id: string;
+          user_id: string | null;
           name: string;
           category: string;
           description: string | null;
           muscle_groups: string[] | null;
           equipment: string[] | null;
+          is_custom: boolean;
           created_at: string;
         };
         Insert: {
           id?: string;
+          user_id?: string | null;
           name: string;
           category: string;
           description?: string | null;
           muscle_groups?: string[] | null;
           equipment?: string[] | null;
+          is_custom?: boolean;
           created_at?: string;
         };
         Update: {
           id?: string;
+          user_id?: string | null;
           name?: string;
           category?: string;
           description?: string | null;
           muscle_groups?: string[] | null;
           equipment?: string[] | null;
+          is_custom?: boolean;
           created_at?: string;
         };
       };
@@ -361,6 +379,26 @@ export type Database = {
           created_at?: string;
         };
       };
+      favorites: {
+        Row: {
+          id: string;
+          user_id: string;
+          workout_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          workout_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          workout_id?: string;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       user_stats: {
@@ -419,6 +457,7 @@ export type Post = Tables<'posts'>;
 export type Comment = Tables<'comments'>;
 export type Like = Tables<'likes'>;
 export type Notification = Tables<'notifications'>;
+export type Favorite = Tables<'favorites'>;
 
 // Types pour les insertions
 export type UserInsert = Inserts<'users'>;

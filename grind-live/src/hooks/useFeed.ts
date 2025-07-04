@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 export interface FeedPost {
   id: string;
+  type: 'post' | 'workout';
   user: string;
   avatar: string;
   badge?: string;
@@ -16,36 +17,6 @@ export interface FeedPost {
   shares: number;
 }
 
-const mockFeed: FeedPost[] = [
-  {
-    id: '1',
-    user: 'Alex_Muscle',
-    avatar: 'A',
-    badge: 'Nouveau PR !',
-    time: 'Il y a 2h',
-    title: 'Push Day',
-    emoji: '💪',
-    duration: '1h 30m',
-    details: 'Développé couché · Dips · Épaules · Triceps',
-    likes: 24,
-    comments: 5,
-    shares: 0,
-  },
-  {
-    id: '2',
-    user: 'Sophie_Fit',
-    avatar: 'S',
-    time: 'Il y a 4h',
-    title: 'Leg Day',
-    emoji: '🔥',
-    duration: '1h 15m',
-    details: 'Squat · Soulevé de terre · Fentes · Mollets',
-    likes: 18,
-    comments: 3,
-    shares: 0,
-  },
-];
-
 export function useFeed() {
   const [feed, setFeed] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,15 +28,14 @@ export function useFeed() {
         setLoading(true);
         setError(null);
         
-        // Simuler un chargement (remplacer par Supabase ensuite)
-        await new Promise(resolve => setTimeout(resolve, 400));
+        const response = await fetch('/api/feed');
         
-        // Simuler une erreur aléatoire pour tester (à supprimer en prod)
-        if (Math.random() < 0.05) {
-          throw new Error('Erreur de chargement feed');
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
         }
         
-        setFeed(mockFeed);
+        const data = await response.json();
+        setFeed(data);
       } catch (err) {
         console.error('Erreur useFeed:', err);
         setError(err instanceof Error ? err.message : 'Erreur inconnue');
@@ -77,37 +47,45 @@ export function useFeed() {
     fetchFeed();
   }, []);
 
-  // Like/unlike un post
-  const toggleLike = (id: string) => {
+  // Like/unlike un post (à implémenter avec l'API)
+  const toggleLike = async (id: string) => {
     try {
-      setFeed((prev) =>
-        prev.map((post) =>
-          post.id === id
-            ? { ...post, likes: post.likes + 1 } // Pour l'exemple, incrémente toujours
-            : post
-        )
-      );
+      // TODO: Implémenter l'API pour liker/unliker
       console.log('Post liked:', id);
     } catch (err) {
       console.error('Erreur toggleLike:', err);
     }
   };
 
-  // Ajouter un commentaire (exemple simplifié)
-  const addComment = (id: string) => {
+  // Ajouter un commentaire (à implémenter avec l'API)
+  const addComment = async (id: string) => {
     try {
-      setFeed((prev) =>
-        prev.map((post) =>
-          post.id === id
-            ? { ...post, comments: post.comments + 1 }
-            : post
-        )
-      );
+      // TODO: Implémenter l'API pour ajouter un commentaire
       console.log('Comment added to post:', id);
     } catch (err) {
       console.error('Erreur addComment:', err);
     }
   };
 
-  return { feed, loading, error, toggleLike, addComment };
+  // Rafraîchir le feed
+  const refreshFeed = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/feed');
+      
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setFeed(data);
+    } catch (err) {
+      console.error('Erreur refreshFeed:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { feed, loading, error, toggleLike, addComment, refreshFeed };
 } 
