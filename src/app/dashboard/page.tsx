@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { useProgression } from '@/hooks/useProgression';
 import { useFeed } from '@/hooks/useFeed';
@@ -8,6 +8,12 @@ import { useWorkouts } from '@/hooks/useWorkouts';
 import { useTabs } from '@/hooks/useTabs';
 import Link from 'next/link';
 import { ArrowRight, TrendingUp, Target, Clock, Flame, Trophy, Calendar, Activity } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { BarChart3, Dumbbell, Users, Plus } from 'lucide-react';
 
 export default function DashboardPage() {
   console.log('🔍 DashboardPage: Rendu du composant');

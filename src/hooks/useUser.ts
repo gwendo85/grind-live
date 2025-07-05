@@ -1,61 +1,64 @@
 import { useState, useEffect } from 'react';
-import { supabaseBrowser } from '@/lib/supabaseClient';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar: string;
+}
+
+interface AuthError {
+  message: string;
+}
 
 export function useUser() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AuthError | null>(null);
 
   useEffect(() => {
-    // Mode démo - Utilisateur fictif connecté
-    const demoUser = {
-      id: 'demo-user',
-      email: 'demo@grind-live.com',
-      name: 'Alex Johnson',
-      avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
-    };
-
-    setUser(demoUser);
-    setLoading(false);
-
-    // Simuler l'écoute des changements d'auth
-    const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(
-      (event: string, session: any) => {
-        if (event === 'SIGNED_IN') {
-          setUser(demoUser);
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-        }
-        setLoading(false);
+    // Mode démo - récupération de l'utilisateur depuis localStorage
+    const demoUser = localStorage.getItem('demoUser');
+    if (demoUser) {
+      try {
+        const userData = JSON.parse(demoUser);
+        setUser(userData);
+      } catch {
+        setError({ message: 'Erreur lors du chargement de l\'utilisateur' });
       }
-    );
-
-    return () => subscription.unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
-  const signIn = async (email: string) => {
-    setLoading(true);
+  const signIn = async (email: string, password: string): Promise<{ user: User | null; error: AuthError | null }> => {
     try {
-      const { user } = await supabaseBrowser.auth.signIn();
-      setUser(user);
-      setError(null);
-    } catch (err) {
-      setError('Erreur de connexion');
-    } finally {
-      setLoading(false);
+      // Simulation de connexion en mode démo
+      const userData = {
+        id: 'demo-user',
+        email,
+        name: email.split('@')[0],
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+      };
+      
+      localStorage.setItem('demoUser', JSON.stringify(userData));
+      setUser(userData);
+      return { user: userData, error: null };
+    } catch {
+      const authError = { message: 'Erreur de connexion' };
+      setError(authError);
+      return { user: null, error: authError };
     }
   };
 
-  const signOut = async () => {
-    setLoading(true);
+  const signOut = async (): Promise<{ error: AuthError | null }> => {
     try {
-      await supabaseBrowser.auth.signOut();
+      localStorage.removeItem('demoUser');
       setUser(null);
-      setError(null);
-    } catch (err) {
-      setError('Erreur de déconnexion');
-    } finally {
-      setLoading(false);
+      return { error: null };
+    } catch {
+      const authError = { message: 'Erreur de déconnexion' };
+      setError(authError);
+      return { error: authError };
     }
   };
 
@@ -64,7 +67,6 @@ export function useUser() {
     loading,
     error,
     signIn,
-    signOut,
-    isAuthenticated: !!user
+    signOut
   };
 } 

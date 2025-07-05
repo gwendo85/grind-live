@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Vérifier si les variables d'environnement sont définies
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Configuration Supabase pour le mode démo
+// En production, utilisez les vraies variables d'environnement
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
 
 // Vérifier si les clés sont valides
 const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey && 
@@ -31,23 +33,22 @@ const createMockClient = () => {
   };
 };
 
-// Mode démo simple - Pas besoin de Supabase pour tester l'interface
+// Client pour le navigateur (React)
 export const supabaseBrowser = {
   auth: {
     user: null,
     session: null,
-    signIn: async () => ({ user: { id: 'demo-user', email: 'demo@grind-live.com' } }),
-    signOut: async () => ({ error: null }),
-    onAuthStateChange: (callback: any) => {
-      // Simuler un utilisateur connecté
-      callback('SIGNED_IN', { user: { id: 'demo-user', email: 'demo@grind-live.com' } });
-      return { data: { subscription: { unsubscribe: () => {} } } };
-    }
+    signIn: async () => Promise.resolve({ user: { id: 'demo', email: 'demo@example.com' } }),
+    signOut: async () => Promise.resolve({ error: null }),
+    onAuthStateChange: (callback: (event: string, session: unknown) => void) => ({
+      data: { subscription: { unsubscribe: () => {} } }
+    })
   },
   from: () => ({
     select: () => ({
       eq: () => Promise.resolve({ data: [], error: null }),
-      order: () => Promise.resolve({ data: [], error: null })
+      order: () => Promise.resolve({ data: [], error: null }),
+      limit: () => Promise.resolve({ data: [], error: null })
     }),
     insert: () => Promise.resolve({ data: null, error: null }),
     update: () => Promise.resolve({ data: null, error: null }),

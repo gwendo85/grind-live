@@ -21,10 +21,19 @@ export default function AuthPage() {
     setError('');
 
     try {
-      // Mode démo - connexion automatique
-      await signIn(email);
-      router.push('/dashboard');
-    } catch (err) {
+      // Simulation de connexion en mode démo
+      if (email && password) {
+        // Stockage local pour la démo
+        localStorage.setItem('demoUser', JSON.stringify({
+          email,
+          name: email.split('@')[0],
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+        }));
+        
+        // Redirection vers le dashboard
+        window.location.href = '/dashboard';
+      }
+    } catch {
       setError('Erreur de connexion');
     } finally {
       setIsLoading(false);
@@ -125,8 +134,8 @@ export default function AuthPage() {
 
           {/* Demo Info */}
           <div className="text-center">
-            <p className="text-sm text-gray-500">
-              Mode démo - Utilise n'importe quel email/mot de passe
+            <p className="text-sm text-gray-600 mt-4">
+              En mode démo, tu peux te connecter avec n&apos;importe quel email et mot de passe.
             </p>
           </div>
         </form>

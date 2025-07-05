@@ -31,7 +31,7 @@ export default function AuthForm() {
             🔧 Configuration Supabase requise
           </div>
           <p className="text-yellow-700 text-sm mb-4">
-            Pour utiliser l'authentification, configure tes variables d'environnement Supabase dans le fichier <code>.env.local</code>
+            Pour utiliser l&apos;authentification, configure tes variables d&apos;environnement Supabase dans le fichier <code>.env.local</code>
           </p>
           <div className="bg-white p-4 rounded border text-left text-sm">
             <div className="font-mono text-xs">

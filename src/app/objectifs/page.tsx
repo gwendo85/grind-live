@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Target, Trophy, Edit, Trash2, PlusCircle, Calendar, BarChart2, Repeat, Activity } from 'lucide-react';
 
 // Objectifs mockés pour la démo
@@ -45,9 +44,11 @@ const badgesMock = [
 export default function ObjectifsPage() {
   // Pour la démo, on utilise les mocks
   const objectifs = objectifsMock;
-  const nbObjectifs = objectifs.length;
-  const nbCompletes = objectifs.filter(o => o.progression >= 100).length;
-  const percent = Math.round((objectifs.reduce((acc, o) => acc + o.progression, 0) / (nbObjectifs * 100)) * 100);
+  const objectifsActifs = objectifs.filter(obj => obj.progression < 100);
+  const objectifsAtteints = objectifs.filter(obj => obj.progression >= 100);
+  const progressionGenerale = objectifs.length > 0 
+    ? Math.round(objectifs.reduce((acc, obj) => acc + obj.progression, 0) / objectifs.length)
+    : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-4">
@@ -61,13 +62,13 @@ export default function ObjectifsPage() {
           <div className="text-gray-600 text-lg mb-4">Avance chaque jour vers tes ambitions.</div>
           <div className="w-full flex flex-col items-center">
             <div className="flex items-center justify-between w-full mb-1">
-              <span className="text-sm text-gray-500">{nbObjectifs} objectifs actifs</span>
-              <span className="text-sm text-blue-600 font-bold">{percent}% complétés</span>
+              <span className="text-sm text-gray-500">{objectifs.length} objectifs actifs</span>
+              <span className="text-sm text-blue-600 font-bold">{progressionGenerale}% complétés</span>
             </div>
             <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className="h-3 bg-blue-500 rounded-full transition-all duration-700"
-                style={{ width: `${percent}%` }}
+                style={{ width: `${progressionGenerale}%` }}
               ></div>
             </div>
           </div>
@@ -80,7 +81,7 @@ export default function ObjectifsPage() {
             Objectifs actifs
           </h2>
           <div className="grid gap-4">
-            {objectifs.map(obj => (
+            {objectifsActifs.map(obj => (
               <div key={obj.id} className="bg-white rounded-2xl shadow p-5 flex flex-col sm:flex-row sm:items-center gap-4 relative">
                 <div className="absolute top-3 right-3 flex gap-2">
                   <button className="p-2 rounded-full hover:bg-gray-100 transition" title="Modifier">

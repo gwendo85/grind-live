@@ -1,7 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { User, Settings, Trophy, Target, Calendar, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Trophy, Target, Activity, Settings, LogOut, Star, Zap, Flame } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function ProfilePage() {
@@ -61,9 +67,11 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             {/* Avatar */}
             <div className="relative">
-              <img 
+              <Image 
                 src={userProfile.avatar} 
                 alt={userProfile.name}
+                width={96}
+                height={96}
                 className="w-24 h-24 rounded-full object-cover border-4 border-purple-500 shadow-lg"
               />
               <div className="absolute -bottom-2 -right-2 bg-green-500 w-6 h-6 rounded-full border-2 border-white"></div>

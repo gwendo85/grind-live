@@ -1,47 +1,48 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useUser } from "@/hooks/useUser";
 import { ArrowLeft, Plus, Clock, Target, TrendingUp, Star } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dumbbell, Users, Flame, Trophy } from 'lucide-react';
 
 export default function WorkoutsPage() {
   const { user, loading: userLoading } = useUser();
   const { workouts, loading: workoutsLoading, error: workoutsError } = useWorkouts();
   const [activeTab, setActiveTab] = useState<'mes-seances' | 'explorer' | 'favoris'>('mes-seances');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   // Données mockées pour les sections Explorer et Favoris
-  const popularWorkouts = [
+  const mockWorkouts = [
     {
-      id: 101,
-      name: "Full Body Beginner",
-      type: "Corps complet",
-      duration: "45m",
-      exercises: 6,
-      difficulty: "Débutant",
-      rating: 4.8,
+      id: '1',
+      name: 'Full Body Strength',
+      description: 'Séance complète pour tout le corps',
+      category: 'strength',
+      duration: 45,
+      difficulty: 'intermediate',
+      exercises: 8,
+      rating: 4.5,
       participants: 1247
     },
     {
-      id: 102,
-      name: "Upper Body Power",
-      type: "Haut du corps",
-      duration: "1h 15m",
-      exercises: 8,
-      difficulty: "Intermédiaire",
-      rating: 4.6,
+      id: '2', 
+      name: 'Cardio HIIT',
+      description: 'Entraînement cardio intensif',
+      category: 'cardio',
+      duration: 30,
+      difficulty: 'advanced',
+      exercises: 6,
+      rating: 4.8,
       participants: 892
-    },
-    {
-      id: 103,
-      name: "Core Crusher",
-      type: "Abdominaux",
-      duration: "30m",
-      exercises: 5,
-      difficulty: "Tous niveaux",
-      rating: 4.9,
-      participants: 2156
     }
   ];
 
@@ -101,6 +102,41 @@ export default function WorkoutsPage() {
     ]);
     setNewWorkout({ name: '', duration: '', exercises: [] });
     setShowCreate(false);
+  };
+
+  const filteredWorkouts = workouts.filter((workout) => {
+    const matchesCategory = selectedCategory === 'all' || workout.category === selectedCategory;
+    const matchesSearch = workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         workout.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const handleWorkoutClick = (workoutId: string) => {
+    // Logique pour démarrer une séance
+    console.log('Démarrage de la séance:', workoutId);
+  };
+
+  const handleFavoriteToggle = (workoutId: string) => {
+    setFavorites(prev => {
+      const newFavorites = prev.includes(workoutId) 
+        ? prev.filter((id: string) => id !== workoutId)
+        : [...prev, workoutId];
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      return newFavorites;
+    });
+  };
+
+  const handleShareWorkout = (workout: { name: string; description: string }) => {
+    if (navigator.share) {
+      navigator.share({
+        title: workout.name,
+        text: workout.description,
+        url: window.location.href
+      });
+    } else {
+      // Fallback pour copier le lien
+      navigator.clipboard.writeText(window.location.href);
+    }
   };
 
   return (
@@ -367,7 +403,7 @@ export default function WorkoutsPage() {
                   <TrendingUp size={20} className="text-blue-500" />
                   Populaires
                 </h3>
-                {popularWorkouts.map((workout) => (
+                {mockWorkouts.map((workout) => (
                   <div key={workout.id} className="border-b last:border-b-0 py-3">
                     <div className="flex items-center justify-between">
                       <div>

@@ -18,6 +18,25 @@ export default function HomePage() {
     setIsDarkMode(prev => !prev);
   }, []);
 
+  // Sauvegarde du thème dans localStorage
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  // Chargement du thème depuis localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      setIsDarkMode(true);
+    }
+  }, []);
+
   // Mémorisation des styles pour éviter les recalculs
   const containerStyle = useMemo(() => ({
     boxShadow: isDarkMode 

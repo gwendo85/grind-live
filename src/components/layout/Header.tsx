@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useUser } from '@/hooks/useUser';
 import { User, LogOut, Sun, Moon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Image from 'next/image';
 
 export default function Header() {
   const { user, loading, signOut, isAuthenticated } = useUser();
@@ -63,15 +65,18 @@ export default function Header() {
             ) : isAuthenticated ? (
               <div className="flex items-center space-x-3">
                 <Link href="/profile" className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 transition-colors">
-                  {user?.avatar_url ? (
-                    <img 
-                      src={user.avatar_url} 
-                      alt={user.name || user.email} 
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <User size={20} />
-                  )}
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback>
+                      <Image 
+                        src={user.avatar} 
+                        alt={user.name}
+                        width={32}
+                        height={32}
+                        className="rounded-full"
+                      />
+                    </AvatarFallback>
+                  </Avatar>
                   <span className="hidden sm:block text-sm font-medium">
                     {user?.name || user?.email}
                   </span>
