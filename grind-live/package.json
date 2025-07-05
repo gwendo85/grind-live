@@ -2,10 +2,6 @@
   "name": "grind-live",
   "version": "0.1.0",
   "private": true,
-  "description": "GRIND Live - SaaS Fitness Gamifié",
-  "keywords": ["fitness", "saas", "nextjs", "supabase"],
-  "author": "Niangdev",
-  "license": "MIT",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
