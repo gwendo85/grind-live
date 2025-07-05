@@ -1,33 +1,15 @@
-// Configuration Supabase pour le mode démo
-// En production, utilisez les vraies variables d'environnement
+import { createClient } from '@supabase/supabase-js';
 
-// Variables d'environnement Supabase (non utilisées en mode démo)
-// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
-// const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
-
-
+// Variables d'environnement Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
 
 // Client pour le navigateur (React)
-export const supabaseBrowser = {
+export const supabaseBrowser = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    user: null,
-    session: null,
-    signIn: async () => Promise.resolve({ user: { id: 'demo', email: 'demo@example.com' } }),
-    signOut: async () => Promise.resolve({ error: null }),
-    onAuthStateChange: () => ({
-      data: { subscription: { unsubscribe: () => {} } }
-    })
+    persistSession: true,
+    autoRefreshToken: true,
   },
-  from: () => ({
-    select: () => ({
-      eq: () => Promise.resolve({ data: [], error: null }),
-      order: () => Promise.resolve({ data: [], error: null }),
-      limit: () => Promise.resolve({ data: [], error: null })
-    }),
-    insert: () => Promise.resolve({ data: null, error: null }),
-    update: () => Promise.resolve({ data: null, error: null }),
-    delete: () => Promise.resolve({ data: null, error: null })
-  })
-};
+});
 
 export const supabaseServer = supabaseBrowser;

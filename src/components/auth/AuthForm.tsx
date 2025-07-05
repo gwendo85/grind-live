@@ -55,7 +55,7 @@ export default function AuthForm() {
   return (
     <div className="w-full max-w-md mx-auto">
       <Auth
-        // Client Supabase pour l'authentification (objet, pas fonction) - CACHE BUSTER
+        // Client Supabase pour l'authentification (objet, pas fonction) - FORCE VERCEL CACHE BUST
         supabaseClient={supabaseBrowser}
         appearance={{
           theme: ThemeSupa,
