@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useUser } from '@/hooks/useUser';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 export default function AuthPage() {
@@ -12,8 +10,6 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
-  const { signIn } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

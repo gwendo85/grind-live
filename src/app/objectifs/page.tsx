@@ -45,7 +45,6 @@ export default function ObjectifsPage() {
   // Pour la démo, on utilise les mocks
   const objectifs = objectifsMock;
   const objectifsActifs = objectifs.filter(obj => obj.progression < 100);
-  const objectifsAtteints = objectifs.filter(obj => obj.progression >= 100);
   const progressionGenerale = objectifs.length > 0 
     ? Math.round(objectifs.reduce((acc, obj) => acc + obj.progression, 0) / objectifs.length)
     : 0;

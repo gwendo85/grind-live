@@ -66,62 +66,6 @@ export default function HomePage() {
     boxShadow: '0 4px 16px 0 rgba(255,105,0,0.15)'
   }), []);
 
-  // Données des icônes mémorisées
-  const iconData = useMemo(() => [
-    {
-      id: 'training',
-      icon: (
-        <svg width="32" height="32" className="md:w-10 md:h-10 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 32 32" fill="none">
-          <path d="M13.5 3L6 18h7l-2 9L26 14h-7l2-11-7.5 11z" fill="#FF9100"/>
-        </svg>
-      ),
-      bgLight: 'bg-[#FFE7C2] hover:bg-[#ffe0b2]/80',
-      bgDark: 'bg-orange-900/30 hover:bg-orange-800/40',
-      hoverColor: 'group-hover:text-[#FF6A00]',
-      label: 'Training'
-    },
-    {
-      id: 'mental',
-      icon: (
-        <svg width="32" height="32" className="md:w-10 md:h-10 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 32 32" fill="none">
-          <path d="M10.5 19.5C8 19.5 6 17.5 6 15s2-4.5 4.5-4.5c.5-2 2.5-3.5 4.5-3.5s4 1.5 4.5 3.5C24 10.5 26 12.5 26 15s-2 4.5-4.5 4.5" stroke="#3B82F6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M16 11v10M13 13v6M19 13v6" stroke="#3B82F6" strokeWidth="2.2" strokeLinecap="round"/>
-        </svg>
-      ),
-      bgLight: 'bg-[#D6E7FF] hover:bg-[#dbeafe]/80',
-      bgDark: 'bg-blue-900/30 hover:bg-blue-800/40',
-      hoverColor: 'group-hover:text-[#3B82F6]',
-      label: 'Mental'
-    },
-    {
-      id: 'social',
-      icon: (
-        <svg width="32" height="32" className="md:w-10 md:h-10 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 32 32" fill="none">
-          <circle cx="16" cy="12" r="5" fill="#22C55E"/>
-          <rect x="8" y="20" width="16" height="6" rx="3" fill="#22C55E"/>
-        </svg>
-      ),
-      bgLight: 'bg-[#D6F9E7] hover:bg-[#bbf7d0]/80',
-      bgDark: 'bg-green-900/30 hover:bg-green-800/40',
-      hoverColor: 'group-hover:text-[#22C55E]',
-      label: 'Social'
-    },
-    {
-      id: 'fitness',
-      icon: (
-        <svg width="32" height="32" className="md:w-10 md:h-10 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 32 32" fill="none">
-          <rect x="8" y="14" width="16" height="4" rx="2" fill="#A259F7"/>
-          <rect x="10" y="10" width="4" height="12" rx="2" fill="#A259F7"/>
-          <rect x="18" y="10" width="4" height="12" rx="2" fill="#A259F7"/>
-        </svg>
-      ),
-      bgLight: 'bg-[#F3E8FF] hover:bg-[#f3e8ff]/90',
-      bgDark: 'bg-purple-900/30 hover:bg-purple-800/40',
-      hoverColor: 'group-hover:text-[#A259F7]',
-      label: 'Fitness'
-    }
-  ], []);
-
   return (
     <div className={`min-h-screen flex flex-col justify-center items-center transition-all duration-500 ${
       isDarkMode 
