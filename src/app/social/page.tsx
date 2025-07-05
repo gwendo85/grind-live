@@ -49,11 +49,6 @@ export default function SocialPage() {
             <ArrowLeft size={20} />
             <span className="text-sm font-medium">Dashboard</span>
           </Link>
-          <span className="inline-block w-8 h-8 rounded-full bg-gray-300 border-2 border-white overflow-hidden">
-            <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">
-              {prenom.charAt(0)}
-            </div>
-          </span>
         </div>
 
         {/* Message de bienvenue */}

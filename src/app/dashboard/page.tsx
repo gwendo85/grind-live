@@ -246,9 +246,9 @@ export default function DashboardPage() {
             <Link href="/workouts" className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-lg text-center text-sm font-medium transition-colors">
               Nouvelle séance
             </Link>
-            <button className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg text-sm font-medium transition-colors">
+            <Link href="/objectifs" className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg text-center text-sm font-medium transition-colors">
               Voir objectifs
-            </button>
+            </Link>
           </div>
         </div>
 

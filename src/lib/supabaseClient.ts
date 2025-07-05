@@ -31,22 +31,28 @@ const createMockClient = () => {
   };
 };
 
-// Client pour le navigateur (React)
-export const supabaseBrowser = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-    })
-  : createMockClient();
+// Mode démo simple - Pas besoin de Supabase pour tester l'interface
+export const supabaseBrowser = {
+  auth: {
+    user: null,
+    session: null,
+    signIn: async () => ({ user: { id: 'demo-user', email: 'demo@grind-live.com' } }),
+    signOut: async () => ({ error: null }),
+    onAuthStateChange: (callback: any) => {
+      // Simuler un utilisateur connecté
+      callback('SIGNED_IN', { user: { id: 'demo-user', email: 'demo@grind-live.com' } });
+      return { data: { subscription: { unsubscribe: () => {} } } };
+    }
+  },
+  from: () => ({
+    select: () => ({
+      eq: () => Promise.resolve({ data: [], error: null }),
+      order: () => Promise.resolve({ data: [], error: null })
+    }),
+    insert: () => Promise.resolve({ data: null, error: null }),
+    update: () => Promise.resolve({ data: null, error: null }),
+    delete: () => Promise.resolve({ data: null, error: null })
+  })
+};
 
-// Client pour le serveur (SSR)
-export const supabaseServer = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    })
-  : createMockClient();
+export const supabaseServer = supabaseBrowser;
