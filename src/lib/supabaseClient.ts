@@ -1,8 +1,9 @@
 // Configuration Supabase pour le mode démo
 // En production, utilisez les vraies variables d'environnement
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
+// Variables d'environnement Supabase (non utilisées en mode démo)
+// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
+// const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
 
 
 

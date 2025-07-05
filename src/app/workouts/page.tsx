@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useUser } from "@/hooks/useUser";
-import { ArrowLeft, Plus, TrendingUp, Star } from "lucide-react";
+import { ArrowLeft, TrendingUp, Star } from "lucide-react";
 
 export default function WorkoutsPage() {
   const { user } = useUser();
