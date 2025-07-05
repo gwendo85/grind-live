@@ -3,21 +3,12 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useUser } from "@/hooks/useUser";
-import { ArrowLeft, Plus, Clock, Target, TrendingUp, Star } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dumbbell, Users, Flame, Trophy } from 'lucide-react';
+import { ArrowLeft, Plus, TrendingUp, Star } from "lucide-react";
 
 export default function WorkoutsPage() {
-  const { user, loading: userLoading } = useUser();
-  const { workouts, loading: workoutsLoading, error: workoutsError } = useWorkouts();
+  const { user } = useUser();
+  const { workouts, loading: workoutsLoading } = useWorkouts();
   const [activeTab, setActiveTab] = useState<'mes-seances' | 'explorer' | 'favoris'>('mes-seances');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [favorites, setFavorites] = useState<string[]>([]);
 
   // Données mockées pour les sections Explorer et Favoris
   const mockWorkouts = [
@@ -64,79 +55,7 @@ export default function WorkoutsPage() {
     }
   ];
 
-  const prenom = user?.username || "Champion";
-
-  // Ajout : état pour la création de séance
-  const [showCreate, setShowCreate] = useState(false);
-  const [newWorkout, setNewWorkout] = useState({
-    name: '',
-    duration: '',
-    exercises: [] as any[],
-  });
-  const [exercise, setExercise] = useState({
-    name: '',
-    sets: '',
-    reps: '',
-    weight: '',
-    rest: '',
-  });
-
-  // Ajout local de la séance (mock)
-  const [localWorkouts, setLocalWorkouts] = useState<any[]>([]);
-
-  const handleAddExercise = () => {
-    if (!exercise.name) return;
-    setNewWorkout((prev) => ({
-      ...prev,
-      exercises: [...prev.exercises, exercise],
-    }));
-    setExercise({ name: '', sets: '', reps: '', weight: '', rest: '' });
-  };
-
-  const handleCreateWorkout = () => {
-    if (!newWorkout.name) return;
-    setLocalWorkouts((prev) => [
-      ...prev,
-      { ...newWorkout, id: Date.now(), duration: newWorkout.duration || '45m' },
-    ]);
-    setNewWorkout({ name: '', duration: '', exercises: [] });
-    setShowCreate(false);
-  };
-
-  const filteredWorkouts = workouts.filter((workout) => {
-    const matchesCategory = selectedCategory === 'all' || workout.category === selectedCategory;
-    const matchesSearch = workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         workout.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const handleWorkoutClick = (workoutId: string) => {
-    // Logique pour démarrer une séance
-    console.log('Démarrage de la séance:', workoutId);
-  };
-
-  const handleFavoriteToggle = (workoutId: string) => {
-    setFavorites(prev => {
-      const newFavorites = prev.includes(workoutId) 
-        ? prev.filter((id: string) => id !== workoutId)
-        : [...prev, workoutId];
-      localStorage.setItem('favorites', JSON.stringify(newFavorites));
-      return newFavorites;
-    });
-  };
-
-  const handleShareWorkout = (workout: { name: string; description: string }) => {
-    if (navigator.share) {
-      navigator.share({
-        title: workout.name,
-        text: workout.description,
-        url: window.location.href
-      });
-    } else {
-      // Fallback pour copier le lien
-      navigator.clipboard.writeText(window.location.href);
-    }
-  };
+  const prenom = user?.email?.split('@')[0] || "Champion";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4 pb-40">

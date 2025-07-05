@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useUser } from '@/hooks/useUser';
-import { Sun, Moon, LogOut, Settings } from 'lucide-react';
+import { Sun, Moon, LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
