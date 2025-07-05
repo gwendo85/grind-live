@@ -30,7 +30,7 @@ export function useUser() {
     setLoading(false);
   }, []);
 
-  const signIn = async (email: string, password: string): Promise<{ user: User | null; error: AuthError | null }> => {
+  const signIn = async (email: string): Promise<{ user: User | null; error: AuthError | null }> => {
     try {
       // Simulation de connexion en mode démo
       const userData = {

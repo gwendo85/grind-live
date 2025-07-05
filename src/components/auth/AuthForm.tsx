@@ -55,7 +55,7 @@ export default function AuthForm() {
   return (
     <div className="w-full max-w-md mx-auto">
       <Auth
-        supabaseClient={supabaseBrowser as any}
+        supabaseClient={supabaseBrowser as unknown}
         appearance={{
           theme: ThemeSupa,
           variables: {

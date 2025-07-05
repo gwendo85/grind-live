@@ -1,6 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useUser } from "@/hooks/useUser";

@@ -1,12 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "../../components/ui/avatar";
+import { Button } from "../../components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Users, MessageCircle, Heart, Share, MoreHorizontal, Trophy, Target, Flame } from 'lucide-react';
 
 const mockFeed = [
   {

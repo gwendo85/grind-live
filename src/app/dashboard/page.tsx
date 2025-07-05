@@ -7,7 +7,7 @@ import { useFeed } from '@/hooks/useFeed';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { useTabs } from '@/hooks/useTabs';
 import Link from 'next/link';
-import { ArrowRight, TrendingUp, Target, Clock, Flame, Trophy, Activity } from 'lucide-react';
+import { TrendingUp, Target, Clock, Trophy, Activity } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, loading: userLoading, error: userError } = useUser();

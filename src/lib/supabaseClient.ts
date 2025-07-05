@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
 // Configuration Supabase pour le mode démo
 // En production, utilisez les vraies variables d'environnement
 
@@ -40,7 +38,7 @@ export const supabaseBrowser = {
     session: null,
     signIn: async () => Promise.resolve({ user: { id: 'demo', email: 'demo@example.com' } }),
     signOut: async () => Promise.resolve({ error: null }),
-    onAuthStateChange: (callback: (event: string, session: unknown) => void) => ({
+    onAuthStateChange: () => ({
       data: { subscription: { unsubscribe: () => {} } }
     })
   },
