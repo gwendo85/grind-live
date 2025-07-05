@@ -55,7 +55,7 @@ export default function AuthForm() {
   return (
     <div className="w-full max-w-md mx-auto">
       <Auth
-        // Client Supabase pour l'authentification (objet, pas fonction) - SYNCHRONISATION FORCÉE
+        // Client Supabase pour l'authentification (objet, pas fonction) - CACHE BUSTER
         supabaseClient={supabaseBrowser}
         appearance={{
           theme: ThemeSupa,
