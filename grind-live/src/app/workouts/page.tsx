@@ -32,8 +32,8 @@ import { toast } from "sonner";
 
 export default function WorkoutsPage() {
   const { workouts, loading: workoutsLoading, error: workoutsError, deleteWorkout, createWorkout, refresh } = useWorkouts();
-  const { publicWorkouts, loading: explorerLoading, error: explorerError } = useExplorer();
-  const { favorites, loading: favoritesLoading, toggleFavorite, isFavorite, error: favoritesError } = useFavorites();
+  const { publicWorkouts, loading: explorerLoading } = useExplorer();
+  const { favorites, loading: favoritesLoading, toggleFavorite, isFavorite } = useFavorites();
   const [activeTab, setActiveTab] = useState<'mes-seances' | 'explorer' | 'favoris'>('mes-seances');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -66,6 +66,10 @@ export default function WorkoutsPage() {
   }), [workouts, favorites, publicWorkouts, workoutsLoading, favoritesLoading, explorerLoading]);
 
   const handleDeleteWorkout = useCallback(async (workoutId: string) => {
+    if (!deleteWorkout) {
+      toast.error('Fonction de suppression non disponible');
+      return;
+    }
     try {
       await deleteWorkout(workoutId);
       setShowDeleteConfirm(null);
@@ -183,7 +187,7 @@ export default function WorkoutsPage() {
     }
   }, [form, exercises, validateForm, createWorkout, router]);
 
-  // Gestion de l'ajout d'exercice
+  // Gestion de l&apos;ajout d'exercice
   const handleAddExercise = useCallback(() => {
     if (!newExercise.name.trim() || !newExercise.sets || !newExercise.reps) {
       toast.error('Remplissez tous les champs obligatoires');

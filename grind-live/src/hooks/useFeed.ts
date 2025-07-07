@@ -10,7 +10,7 @@ export interface FeedItem {
     name: string;
     avatar?: string;
   };
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 // Données simulées pour les tests

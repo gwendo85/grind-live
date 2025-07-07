@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabaseBrowser } from '@/lib/supabaseClient';
 import { useUser } from './useUser';
 
 export interface FavoriteWorkout {
@@ -50,12 +49,22 @@ export function useFavorites() {
       console.log('🔍 Mode simulation : chargement des favoris mock');
       setLoading(true);
       
-      // Simuler un délai de chargement
-      setTimeout(() => {
+      try {
+        const response = await fetch('/api/favorites');
+        if (response.ok) {
+          const data = await response.json();
+          setFavorites(data.favorites || []);
+        } else {
+          // Fallback vers les données mock si l'API échoue
+          setFavorites(MOCK_FAVORITES);
+        }
+      } catch (err) {
+        console.log('🔍 Fallback vers données mock');
         setFavorites(MOCK_FAVORITES);
+      } finally {
         setLoading(false);
         setError(null);
-      }, 800);
+      }
       return;
     }
 
@@ -63,20 +72,13 @@ export function useFavorites() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabaseBrowser
-        .from('favorites')
-        .select(`
-          *,
-          workout:workouts(*)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      const response = await fetch(`/api/favorites?userId=${user.id}`);
+      if (!response.ok) throw new Error('Erreur API');
 
-      if (error) throw error;
-
-      setFavorites(data || []);
+      const data = await response.json();
+      setFavorites(data.favorites || []);
     } catch (err) {
-      console.error('Erreur lors du chargement des favoris:', err);
+      console.error('Erreur lors du chargement des favoris:');
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setLoading(false);
@@ -87,48 +89,26 @@ export function useFavorites() {
   const addToFavorites = async (workoutId: string) => {
     console.log('🔍 Ajout aux favoris:', workoutId);
     
-    // Mode simulation si pas d'utilisateur connecté
-    if (!user) {
-      console.log('🔍 Mode simulation : ajout aux favoris mock');
-      
-      // Simuler un délai
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Créer un nouveau favori simulé
-      const newFavorite: FavoriteWorkout = {
-        id: Date.now().toString(),
-        user_id: 'mock-user',
-        workout_id: workoutId,
-        created_at: new Date().toISOString(),
-        workout: {
-          id: workoutId,
-          name: `Séance ${workoutId}`,
-          description: 'Séance simulée',
-          created_at: new Date().toISOString(),
-          user_id: 'mock-user',
-          estimated_duration: 60,
-          exercise_count: 5
-        }
-      };
-      
-      setFavorites(prev => [newFavorite, ...prev]);
-      return;
-    }
-
     try {
-      const { error } = await supabaseBrowser
-        .from('favorites')
-        .insert({
-          user_id: user.id,
-          workout_id: workoutId
-        });
+      const response = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id || 'mock-user',
+          workoutId
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Erreur API');
 
-      // Recharger les favoris
-      await loadFavorites();
+      const data = await response.json();
+      
+      // Ajouter le nouveau favori à la liste
+      setFavorites(prev => [data.favorite, ...prev]);
     } catch (err) {
-      console.error('Erreur lors de l\'ajout aux favoris:', err);
+      console.error('Erreur lors de l\'ajout aux favoris:');
       throw err;
     }
   };
@@ -137,30 +117,17 @@ export function useFavorites() {
   const removeFromFavorites = async (workoutId: string) => {
     console.log('🔍 Retrait des favoris:', workoutId);
     
-    // Mode simulation si pas d'utilisateur connecté
-    if (!user) {
-      console.log('🔍 Mode simulation : retrait des favoris mock');
-      
-      // Simuler un délai
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      setFavorites(prev => prev.filter(fav => fav.workout_id !== workoutId));
-      return;
-    }
-
     try {
-      const { error } = await supabaseBrowser
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('workout_id', workoutId);
+      const response = await fetch(`/api/favorites?userId=${user?.id || 'mock-user'}&workoutId=${workoutId}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Erreur API');
 
-      // Recharger les favoris
-      await loadFavorites();
+      // Retirer le favori de la liste
+      setFavorites(prev => prev.filter(fav => fav.workout_id !== workoutId));
     } catch (err) {
-      console.error('Erreur lors de la suppression des favoris:', err);
+      console.error('Erreur lors de la suppression des favoris:');
       throw err;
     }
   };

@@ -214,14 +214,19 @@ export default function DashboardPage() {
                 </div>
               ) : feed && feed.length > 0 ? (
                 <div className="space-y-4">
-                  {feed.slice(0, 3).map((item, index) => (
-                    <div key={index} className="border-b pb-4 last:border-b-0">
+                  {feed.slice(0, 3).map((item, idx) => (
+                    <div key={item.id || idx} className="border-b pb-4 last:border-b-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium">{item.user}</span>
-                        <span className="text-xs text-gray-500">{item.time}</span>
+                        <span className="text-sm font-medium">{item.user.name}</span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(item.timestamp).toLocaleString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
                       </div>
                       <div className="font-medium">{item.title}</div>
-                      <div className="text-sm text-gray-600">{item.details}</div>
+                      <div className="text-sm text-gray-600">{item.description}</div>
                     </div>
                   ))}
                 </div>

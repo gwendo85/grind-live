@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser } from './useUser';
 import { supabaseBrowser } from '@/lib/supabaseClient';
 import { Workout, WorkoutInsert, ExerciseLogInsert } from '@/lib/types';
@@ -56,11 +56,9 @@ export function useWorkouts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSimulationMode, setIsSimulationMode] = useState(false);
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     console.log('🔍 useWorkouts: useEffect déclenché');
-    setIsClient(true);
     
     const loadWorkouts = async () => {
       console.log('🔍 useWorkouts: loadWorkouts démarré');
@@ -195,20 +193,19 @@ export function useWorkouts() {
     };
   }, [user]);
 
-  // Si on n'est pas encore côté client, retourner les données simulées
-  if (!isClient) {
-    return {
-      workouts: MOCK_WORKOUTS,
-      loading: false,
-      error: null,
-      createWorkout: async () => MOCK_WORKOUTS[0],
-      refresh: () => {},
-      isSimulationMode: true
-    };
-  }
+  // Si on n'est pas encore côté client, retourner des valeurs par défaut
+  const refresh = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      // Recharger les données
+      console.log('🔍 useWorkouts: Rafraîchissement manuel');
+      // Re-déclencher le useEffect en forçant un re-render
+      setWorkouts([]);
+      setLoading(true);
+    }
+  }, []);
 
   // Créer une nouvelle séance avec exercices
-  const createWorkout = async (workoutData: WorkoutWithExercises) => {
+  const createWorkout = useCallback(async (workoutData: WorkoutWithExercises) => {
     console.log('🔍 createWorkout appelé avec:', workoutData);
     
     // Mode simulation si pas d'utilisateur connecté
@@ -320,7 +317,7 @@ export function useWorkouts() {
       console.error('Erreur lors de la création de la séance:', error);
       throw error;
     }
-  };
+  }, [user, setWorkouts]);
 
   const createSimpleWorkout = async (workoutData: WorkoutInsert) => {
     if (!user) return null;
@@ -415,7 +412,7 @@ export function useWorkouts() {
     startWorkout,
     finishWorkout,
     addExerciseLog,
-    refresh: () => {},
+    refresh,
     isSimulationMode
   };
 } 

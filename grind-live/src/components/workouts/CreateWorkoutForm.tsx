@@ -141,7 +141,7 @@ export function CreateWorkoutForm({ onClose }: CreateWorkoutFormProps) {
             </CardContent>
           </Card>
 
-          {/* Ajout d'exercices */}
+          {/* Ajout d&apos;exercices */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Ajouter un exercice</CardTitle>
