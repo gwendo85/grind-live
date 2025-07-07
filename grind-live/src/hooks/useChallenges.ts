@@ -65,22 +65,17 @@ export function useChallenges() {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    console.log('🔍 useChallenges: useEffect déclenché');
     setIsClient(true);
     
     const fetchChallenges = async () => {
-      console.log('🔍 useChallenges: fetchChallenges démarré');
       try {
         setLoading(true);
         setError(null);
         
-        console.log('🔍 useChallenges: Appel de /api/challenges');
         const response = await fetch('/api/challenges');
-        console.log('🔍 useChallenges: Réponse reçue', { status: response.status, ok: response.ok });
         
         // Si la réponse n'est pas ok (401, 500, etc.), passer en mode simulation
         if (!response.ok) {
-          console.log('🔍 useChallenges: Erreur HTTP', response.status, '- Mode simulation activé');
           setIsSimulationMode(true);
           setChallenges(MOCK_CHALLENGES);
           setLoading(false);
@@ -90,9 +85,7 @@ export function useChallenges() {
         let data;
         try {
           data = await response.json();
-          console.log('🔍 useChallenges: Données JSON parsées:', data);
         } catch (e) {
-          console.log('🔍 useChallenges: Réponse non-JSON, mode simulation activé');
           setIsSimulationMode(true);
           setChallenges(MOCK_CHALLENGES);
           setLoading(false);
@@ -100,7 +93,6 @@ export function useChallenges() {
         }
         setChallenges(data);
         setIsSimulationMode(false);
-        console.log('🔍 useChallenges: Données réelles définies');
       } catch (err) {
         console.error('❌ Erreur useChallenges:', err);
         setIsSimulationMode(true);
@@ -108,7 +100,6 @@ export function useChallenges() {
         setError(err instanceof Error ? err.message : 'Erreur inconnue');
       } finally {
         setLoading(false);
-        console.log('🔍 useChallenges: Loading terminé');
       }
     };
     
@@ -134,7 +125,6 @@ export function useChallenges() {
   // Rafraîchir les challenges
   const refreshChallenges = async () => {
     if (isSimulationMode) {
-      console.log('🔍 useChallenges: Rafraîchissement simulé');
       setChallenges(MOCK_CHALLENGES);
       return;
     }
@@ -142,7 +132,6 @@ export function useChallenges() {
       setLoading(true);
       const response = await fetch('/api/challenges');
       if (!response.ok) {
-        console.log('🔍 useChallenges: Erreur HTTP lors du rafraîchissement, mode simulation activé');
         setIsSimulationMode(true);
         setChallenges(MOCK_CHALLENGES);
         setLoading(false);

@@ -53,22 +53,17 @@ export function useDailyGoals() {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    console.log('🔍 useDailyGoals: useEffect déclenché');
     setIsClient(true);
     
     const fetchGoals = async () => {
-      console.log('🔍 useDailyGoals: fetchGoals démarré');
       try {
         setLoading(true);
         setError(null);
         
-        console.log('🔍 useDailyGoals: Appel de /api/daily-goals');
         const response = await fetch('/api/daily-goals');
-        console.log('🔍 useDailyGoals: Réponse reçue', { status: response.status, ok: response.ok });
         
         // Si la réponse n'est pas ok (401, 500, etc.), passer en mode simulation
         if (!response.ok) {
-          console.log('🔍 useDailyGoals: Erreur HTTP', response.status, '- Mode simulation activé');
           setIsSimulationMode(true);
           setGoals(MOCK_GOALS);
           setLoading(false);
@@ -78,9 +73,7 @@ export function useDailyGoals() {
         let data;
         try {
           data = await response.json();
-          console.log('🔍 useDailyGoals: Données JSON parsées:', data);
         } catch (e) {
-          console.log('🔍 useDailyGoals: Réponse non-JSON, mode simulation activé');
           setIsSimulationMode(true);
           setGoals(MOCK_GOALS);
           setLoading(false);
@@ -88,7 +81,6 @@ export function useDailyGoals() {
         }
         setGoals(data);
         setIsSimulationMode(false);
-        console.log('🔍 useDailyGoals: Données réelles définies');
       } catch (err) {
         console.error('❌ Erreur useDailyGoals:', err);
         setIsSimulationMode(true);
@@ -96,7 +88,6 @@ export function useDailyGoals() {
         setError(err instanceof Error ? err.message : 'Erreur inconnue');
       } finally {
         setLoading(false);
-        console.log('🔍 useDailyGoals: Loading terminé');
       }
     };
     
@@ -123,7 +114,6 @@ export function useDailyGoals() {
   // Mettre à jour un objectif
   const updateGoal = async (goalId: string, completed: boolean, current?: number) => {
     if (isSimulationMode) {
-      console.log('🔍 useDailyGoals: Mise à jour simulée', { goalId, completed, current });
       setGoals(prev => prev.map(goal => 
         goal.id === goalId 
           ? { ...goal, completed, current: current ?? goal.current }
@@ -144,15 +134,6 @@ export function useDailyGoals() {
         }),
       });
       if (!response.ok) {
-        console.log('🔍 useDailyGoals: Erreur HTTP lors de la mise à jour, mode simulation activé');
-        setIsSimulationMode(true);
-        setGoals(MOCK_GOALS);
-        return;
-      }
-      let data;
-      try {
-        data = await response.json();
-      } catch (e) {
         setIsSimulationMode(true);
         setGoals(MOCK_GOALS);
         return;
@@ -172,7 +153,6 @@ export function useDailyGoals() {
   // Rafraîchir les objectifs
   const refreshGoals = async () => {
     if (isSimulationMode) {
-      console.log('🔍 useDailyGoals: Rafraîchissement simulé');
       setGoals(MOCK_GOALS);
       return;
     }
@@ -180,7 +160,6 @@ export function useDailyGoals() {
       setLoading(true);
       const response = await fetch('/api/daily-goals');
       if (!response.ok) {
-        console.log('🔍 useDailyGoals: Erreur HTTP lors du rafraîchissement, mode simulation activé');
         setIsSimulationMode(true);
         setGoals(MOCK_GOALS);
         setLoading(false);

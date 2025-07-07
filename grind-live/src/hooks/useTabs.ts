@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
-export function useTabs(tabs: string[], defaultTab: string, storageKey?: string) {
+export function useTabs(tabs: string[], defaultTab: string) {
   // Validation des paramètres avec useMemo pour éviter les recalculs
   const validatedConfig = useMemo(() => {
     if (!Array.isArray(tabs) || tabs.length === 0) {
@@ -29,13 +29,6 @@ export function useTabs(tabs: string[], defaultTab: string, storageKey?: string)
   }, [tabs, defaultTab]);
 
   const [activeTab, setActiveTab] = useState<string>(validatedConfig.defaultTab);
-
-  console.log('🔍 useTabs: Initialisation avec', { 
-    tabs: validatedConfig.tabs, 
-    defaultTab: validatedConfig.defaultTab, 
-    storageKey,
-    isValid: validatedConfig.isValid
-  });
 
   // Fonction stable pour changer d'onglet
   const setActiveTabStable = useCallback((tab: string) => {

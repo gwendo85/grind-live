@@ -46,7 +46,6 @@ export function useFavorites() {
   const loadFavorites = useCallback(async () => {
     // Mode simulation si pas d'utilisateur connecté
     if (!user) {
-      console.log('🔍 Mode simulation : chargement des favoris mock');
       setLoading(true);
       
       try {
@@ -59,7 +58,6 @@ export function useFavorites() {
           setFavorites(MOCK_FAVORITES);
         }
       } catch (err) {
-        console.log('🔍 Fallback vers données mock');
         setFavorites(MOCK_FAVORITES);
       } finally {
         setLoading(false);
@@ -87,7 +85,6 @@ export function useFavorites() {
 
   // Ajouter aux favoris
   const addToFavorites = async (workoutId: string) => {
-    console.log('🔍 Ajout aux favoris:', workoutId);
     
     try {
       const response = await fetch('/api/favorites', {
@@ -115,7 +112,6 @@ export function useFavorites() {
 
   // Retirer des favoris
   const removeFromFavorites = async (workoutId: string) => {
-    console.log('🔍 Retrait des favoris:', workoutId);
     
     try {
       const response = await fetch(`/api/favorites?userId=${user?.id || 'mock-user'}&workoutId=${workoutId}`, {

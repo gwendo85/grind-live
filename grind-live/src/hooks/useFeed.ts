@@ -61,11 +61,9 @@ export function useFeed() {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    console.log('🔍 useFeed: useEffect déclenché');
     setIsClient(true);
     
     const fetchFeed = async () => {
-      console.log('🔍 useFeed: fetchFeed démarré');
       
       try {
         setLoading(true);
@@ -75,7 +73,6 @@ export function useFeed() {
         
         // Si la réponse n'est pas ok (401, 500, etc.), passer en mode simulation
         if (!response.ok) {
-          console.log('🔍 useFeed: Erreur HTTP', response.status, '- Mode simulation activé');
           setIsSimulationMode(true);
           setFeed(MOCK_FEED);
           setLoading(false);
@@ -86,19 +83,16 @@ export function useFeed() {
         try {
           data = await response.json();
         } catch (e) {
-          console.log('🔍 useFeed: Erreur parsing JSON - Mode simulation activé');
           setIsSimulationMode(true);
           setFeed(MOCK_FEED);
           setLoading(false);
           return;
         }
         
-        console.log('🔍 useFeed: Données récupérées avec succès');
         setFeed(data);
         setLoading(false);
         
       } catch (error) {
-        console.log('🔍 useFeed: Erreur réseau - Mode simulation activé');
         setIsSimulationMode(true);
         setFeed(MOCK_FEED);
         setLoading(false);
@@ -110,7 +104,6 @@ export function useFeed() {
       fetchFeed();
     } else {
       // Côté serveur, passer directement en mode simulation
-      console.log('🔍 useFeed: Côté serveur - Mode simulation activé');
       setIsSimulationMode(true);
       setFeed(MOCK_FEED);
       setLoading(false);

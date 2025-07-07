@@ -33,11 +33,9 @@ export function useProgression() {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    console.log('🔍 useProgression: useEffect déclenché');
     setIsClient(true);
     
     const fetchProgression = async () => {
-      console.log('🔍 useProgression: fetchProgression démarré');
       
       try {
         setLoading(true);
@@ -47,7 +45,6 @@ export function useProgression() {
         
         // Si la réponse n'est pas ok (401, 500, etc.), passer en mode simulation
         if (!response.ok) {
-          console.log('🔍 useProgression: Erreur HTTP', response.status, '- Mode simulation activé');
           setIsSimulationMode(true);
           setProgression(MOCK_PROGRESSION);
           setLoading(false);
@@ -58,19 +55,16 @@ export function useProgression() {
         try {
           data = await response.json();
         } catch (e) {
-          console.log('🔍 useProgression: Erreur parsing JSON - Mode simulation activé');
           setIsSimulationMode(true);
           setProgression(MOCK_PROGRESSION);
           setLoading(false);
           return;
         }
         
-        console.log('🔍 useProgression: Données récupérées avec succès');
         setProgression(data);
         setLoading(false);
         
       } catch (error) {
-        console.log('🔍 useProgression: Erreur réseau - Mode simulation activé');
         setIsSimulationMode(true);
         setProgression(MOCK_PROGRESSION);
         setLoading(false);
@@ -82,7 +76,6 @@ export function useProgression() {
       fetchProgression();
     } else {
       // Côté serveur, passer directement en mode simulation
-      console.log('🔍 useProgression: Côté serveur - Mode simulation activé');
       setIsSimulationMode(true);
       setProgression(MOCK_PROGRESSION);
       setLoading(false);

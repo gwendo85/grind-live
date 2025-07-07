@@ -13,9 +13,6 @@ import {
   Clock, 
   Dumbbell,
   Menu,
-  TrendingUp,
-  Heart,
-  AlertCircle,
   RefreshCw
 } from "lucide-react";
 import {
@@ -206,7 +203,6 @@ export default function WorkoutsPage() {
 
   // Gestion du rafraîchissement
   const handleRefresh = useCallback(() => {
-    console.log('🔍 Rafraîchissement manuel des séances');
     refresh();
     toast.success('Données actualisées');
   }, [refresh]);

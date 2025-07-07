@@ -7,14 +7,13 @@ import { useFeed } from '@/hooks/useFeed';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { useDailyGoals } from '@/hooks/useDailyGoals';
 import { useChallenges } from '@/hooks/useChallenges';
-import { useTabs } from '@/hooks/useTabs';
+
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { CreateWorkoutForm } from '@/components/workouts/CreateWorkoutForm';
 import Link from 'next/link';
 import { ArrowRight, TrendingUp, Target, Clock, Flame, Trophy, Activity, Plus, AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function DashboardPage() {
-  console.log('🔍 DashboardPage: Rendu du composant');
 
   // État pour le modal de création de séance
   const [showCreateWorkout, setShowCreateWorkout] = useState(false);
@@ -28,7 +27,8 @@ export default function DashboardPage() {
   const { loading: challengesLoading, getMainChallenge, isSimulationMode: challengesSimulation } = useChallenges();
   
   // Tabs simplifiés
-  const { setActiveTab, isActive } = useTabs(['feed', 'progression', 'seance'], 'feed', 'dashboard-tab');
+  const [activeTab, setActiveTab] = useState('feed');
+  const isActive = (tab: string) => activeTab === tab;
 
   // Vérifier si on est en mode simulation (si au moins un hook est en mode simulation)
   const isSimulationMode = progressionSimulation || feedSimulation || workoutsSimulation || goalsSimulation || challengesSimulation;
@@ -50,7 +50,6 @@ export default function DashboardPage() {
     user: user ? 'connecté' : 'non connecté'
   });
 
-  console.log('🔍 DashboardPage: Séances chargées:', workouts);
 
   // Gestion des erreurs (améliorée)
   if (userError && !isSimulationMode) {
@@ -78,7 +77,6 @@ export default function DashboardPage() {
   const isLoading = (userLoading || progressionLoading || feedLoading || workoutsLoading || goalsLoading || challengesLoading) && !isSimulationMode;
   
   if (isLoading) {
-    console.log('⏳ DashboardPage: Chargement en cours...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-4">
         <div className="max-w-md mx-auto">
@@ -350,7 +348,6 @@ export default function DashboardPage() {
           <div className="space-y-2">
             <button
               onClick={async () => {
-                console.log('🔍 Test création séance simple');
                 try {
                   const testWorkout = {
                     name: 'Test Séance ' + new Date().toLocaleTimeString(),
@@ -366,9 +363,7 @@ export default function DashboardPage() {
                       }
                     ]
                   };
-                  console.log('🔍 Création séance test:', testWorkout);
                   const result = await createWorkout(testWorkout);
-                  console.log('🔍 Résultat création:', result);
                   alert('Séance créée avec succès !');
                 } catch (error) {
                   console.error('❌ Erreur création séance:', error);
@@ -384,7 +379,6 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={() => {
-                console.log('🔍 Rafraîchissement des séances...');
                 refresh();
               }}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 justify-center"

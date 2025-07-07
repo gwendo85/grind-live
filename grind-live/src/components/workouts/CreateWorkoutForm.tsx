@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useWorkouts } from '@/hooks/useWorkouts';
 
 interface ExerciseManual {
@@ -57,12 +56,8 @@ export function CreateWorkoutForm({ onClose }: CreateWorkoutFormProps) {
   };
 
   const handleSubmit = async () => {
-    console.log('🔍 handleSubmit appelé');
-    console.log('🔍 workoutName:', workoutName);
-    console.log('🔍 exercises:', exercises);
     
     if (!workoutName.trim() || exercises.length === 0) {
-      console.log('🔍 Validation échouée - nom vide ou pas d\'exercices');
       return;
     }
     
@@ -81,10 +76,8 @@ export function CreateWorkoutForm({ onClose }: CreateWorkoutFormProps) {
         }))
       };
       
-      console.log('🔍 Données de séance à envoyer:', workoutData);
       
-      const result = await createWorkout(workoutData);
-      console.log('🔍 Résultat de création:', result);
+      await createWorkout(workoutData);
       
       onClose();
     } catch (error) {
