@@ -53,6 +53,10 @@ export type Database = {
           notes: string | null;
           status: 'draft' | 'in_progress' | 'completed' | 'live';
           is_live: boolean;
+          is_public: boolean;
+          difficulty: string | null;
+          estimated_duration: number | null;
+          exercise_count: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -66,6 +70,10 @@ export type Database = {
           notes?: string | null;
           status?: 'draft' | 'in_progress' | 'completed' | 'live';
           is_live?: boolean;
+          is_public?: boolean;
+          difficulty?: string | null;
+          estimated_duration?: number | null;
+          exercise_count?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -79,6 +87,10 @@ export type Database = {
           notes?: string | null;
           status?: 'draft' | 'in_progress' | 'completed' | 'live';
           is_live?: boolean;
+          is_public?: boolean;
+          difficulty?: string | null;
+          estimated_duration?: number | null;
+          exercise_count?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -86,29 +98,35 @@ export type Database = {
       exercises: {
         Row: {
           id: string;
+          user_id: string | null;
           name: string;
           category: string;
           description: string | null;
           muscle_groups: string[] | null;
           equipment: string[] | null;
+          is_custom: boolean;
           created_at: string;
         };
         Insert: {
           id?: string;
+          user_id?: string | null;
           name: string;
           category: string;
           description?: string | null;
           muscle_groups?: string[] | null;
           equipment?: string[] | null;
+          is_custom?: boolean;
           created_at?: string;
         };
         Update: {
           id?: string;
+          user_id?: string | null;
           name?: string;
           category?: string;
           description?: string | null;
           muscle_groups?: string[] | null;
           equipment?: string[] | null;
+          is_custom?: boolean;
           created_at?: string;
         };
       };
@@ -361,6 +379,26 @@ export type Database = {
           created_at?: string;
         };
       };
+      favorites: {
+        Row: {
+          id: string;
+          user_id: string;
+          workout_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          workout_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          workout_id?: string;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       user_stats: {
@@ -409,7 +447,16 @@ export type Updates<T extends keyof Database['public']['Tables']> =
 // Types spécifiques pour les tables principales
 export type User = Tables<'users'>;
 export type Workout = Tables<'workouts'>;
-export type Exercise = Tables<'exercises'>;
+export type Exercise = {
+  id: string;
+  user_id?: string;
+  name: string;
+  category: string;
+  description?: string;
+  muscle_groups?: string[];
+  equipment?: string[];
+  created_at?: string;
+};
 export type ExerciseLog = Tables<'exercise_logs'>;
 export type XpHistory = Tables<'xp_history'>;
 export type Badge = Tables<'badges'>;
@@ -419,6 +466,7 @@ export type Post = Tables<'posts'>;
 export type Comment = Tables<'comments'>;
 export type Like = Tables<'likes'>;
 export type Notification = Tables<'notifications'>;
+export type Favorite = Tables<'favorites'>;
 
 // Types pour les insertions
 export type UserInsert = Inserts<'users'>;
@@ -430,3 +478,18 @@ export type PostInsert = Inserts<'posts'>;
 export type UserUpdate = Updates<'users'>;
 export type WorkoutUpdate = Updates<'workouts'>;
 export type PostUpdate = Updates<'posts'>;
+
+export interface ExerciseInWorkout {
+  exercise_id: string;
+  exercise: Exercise;
+  sets: number;
+  reps: number;
+  weight?: number;
+  rest_time: number;
+  notes?: string;
+  order: number;
+}
+
+export interface WorkoutWithExercises extends Workout {
+  exercises: ExerciseInWorkout[];
+}

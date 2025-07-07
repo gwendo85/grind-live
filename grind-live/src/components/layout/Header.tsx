@@ -29,9 +29,9 @@ export default function Header() {
     const getUser = async () => {
       const {
         data: { user },
-      } = await supabaseBrowser().auth.getUser();
+      } = await supabaseBrowser.auth.getUser();
       if (user) {
-        const { data: profile } = await supabaseBrowser()
+        const { data: profile } = await supabaseBrowser
           .from('users')
           .select('*')
           .eq('id', user.id)
@@ -44,9 +44,9 @@ export default function Header() {
 
     const {
       data: { subscription },
-    } = supabaseBrowser().auth.onAuthStateChange(async (event, session) => {
+    } = supabaseBrowser.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        const { data: profile } = await supabaseBrowser()
+        const { data: profile } = await supabaseBrowser
           .from('users')
           .select('*')
           .eq('id', session.user.id)
@@ -61,7 +61,7 @@ export default function Header() {
   }, []);
 
   const handleSignOut = async () => {
-    await supabaseBrowser().auth.signOut();
+    await supabaseBrowser.auth.signOut();
     router.push('/');
   };
 

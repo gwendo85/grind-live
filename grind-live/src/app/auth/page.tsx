@@ -1,5 +1,4 @@
-import { Trophy } from 'lucide-react';
-import AuthForm from '@/components/auth/AuthForm';
+import { AuthForm } from '@/components/auth/AuthForm';
 
 export default function AuthPage() {
   return (
@@ -37,7 +36,7 @@ export default function AuthPage() {
           <p>
             En continuant, tu acceptes nos{' '}
             <a href="/terms" className="text-primary hover:underline">
-              conditions d'utilisation
+              conditions d&apos;utilisation
             </a>{' '}
             et notre{' '}
             <a href="/privacy" className="text-primary hover:underline">

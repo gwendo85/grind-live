@@ -27,6 +27,10 @@ CREATE TABLE public.workouts (
   notes TEXT,
   status workout_status DEFAULT 'draft',
   is_live BOOLEAN DEFAULT FALSE,
+  is_public BOOLEAN DEFAULT FALSE, -- Pour les séances publiques
+  difficulty TEXT, -- 'débutant', 'intermédiaire', 'avancé'
+  estimated_duration INTEGER, -- durée estimée en minutes
+  exercise_count INTEGER, -- nombre d'exercices
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -34,11 +38,13 @@ CREATE TABLE public.workouts (
 -- Exercises table
 CREATE TABLE public.exercises (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE, -- NULL pour exercices globaux, user_id pour exercices personnalisés
   name TEXT NOT NULL,
   category TEXT NOT NULL, -- 'strength', 'cardio', 'flexibility', etc.
   description TEXT,
   muscle_groups TEXT[], -- ['chest', 'triceps', 'shoulders']
   equipment TEXT[], -- ['barbell', 'dumbbell', 'bodyweight']
+  is_custom BOOLEAN DEFAULT FALSE, -- TRUE pour exercices personnalisés
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -140,6 +146,15 @@ CREATE TABLE public.notifications (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Favorites table
+CREATE TABLE public.favorites (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+  workout_id UUID REFERENCES public.workouts(id) ON DELETE CASCADE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, workout_id)
+);
+
 -- Enable RLS on all tables
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workouts ENABLE ROW LEVEL SECURITY;
@@ -153,6 +168,7 @@ ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
 
@@ -170,6 +186,9 @@ CREATE POLICY "Users can view public profiles" ON public.users
 CREATE POLICY "Users can view their own workouts" ON public.workouts
   FOR SELECT USING (auth.uid() = user_id);
 
+CREATE POLICY "Users can view public workouts" ON public.workouts
+  FOR SELECT USING (is_public = true);
+
 CREATE POLICY "Users can create their own workouts" ON public.workouts
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
@@ -179,9 +198,28 @@ CREATE POLICY "Users can update their own workouts" ON public.workouts
 CREATE POLICY "Users can delete their own workouts" ON public.workouts
   FOR DELETE USING (auth.uid() = user_id);
 
--- Exercises policies (public read, admin write)
+-- Exercises policies (public read, user write for custom exercises)
 CREATE POLICY "Anyone can view exercises" ON public.exercises
   FOR SELECT USING (true);
+
+CREATE POLICY "Users can create their own custom exercises" ON public.exercises
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own custom exercises" ON public.exercises
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own custom exercises" ON public.exercises
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Favorites policies
+CREATE POLICY "Users can view their own favorites" ON public.favorites
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create their own favorites" ON public.favorites
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own favorites" ON public.favorites
+  FOR DELETE USING (auth.uid() = user_id);
 
 -- Exercise logs policies
 CREATE POLICY "Users can view their own exercise logs" ON public.exercise_logs
@@ -351,14 +389,14 @@ CREATE TRIGGER update_comments_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert some default exercises
-INSERT INTO public.exercises (name, category, description, muscle_groups, equipment) VALUES
-('Bench Press', 'strength', 'Classic chest exercise', ARRAY['chest', 'triceps', 'shoulders'], ARRAY['barbell', 'bench']),
-('Squat', 'strength', 'Fundamental leg exercise', ARRAY['quadriceps', 'glutes', 'hamstrings'], ARRAY['barbell']),
-('Deadlift', 'strength', 'Full body compound movement', ARRAY['back', 'glutes', 'hamstrings'], ARRAY['barbell']),
-('Pull-ups', 'strength', 'Upper body pulling exercise', ARRAY['back', 'biceps'], ARRAY['bodyweight']),
-('Push-ups', 'strength', 'Bodyweight chest exercise', ARRAY['chest', 'triceps', 'shoulders'], ARRAY['bodyweight']),
-('Running', 'cardio', 'Basic cardiovascular exercise', ARRAY['legs'], ARRAY['bodyweight']),
-('Plank', 'strength', 'Core stability exercise', ARRAY['core'], ARRAY['bodyweight']);
+INSERT INTO public.exercises (user_id, name, category, description, muscle_groups, equipment, is_custom) VALUES
+(NULL, 'Bench Press', 'strength', 'Classic chest exercise', ARRAY['chest', 'triceps', 'shoulders'], ARRAY['barbell', 'bench'], FALSE),
+(NULL, 'Squat', 'strength', 'Fundamental leg exercise', ARRAY['quadriceps', 'glutes', 'hamstrings'], ARRAY['barbell'], FALSE),
+(NULL, 'Deadlift', 'strength', 'Full body compound movement', ARRAY['back', 'glutes', 'hamstrings'], ARRAY['barbell'], FALSE),
+(NULL, 'Pull-ups', 'strength', 'Upper body pulling exercise', ARRAY['back', 'biceps'], ARRAY['bodyweight'], FALSE),
+(NULL, 'Push-ups', 'strength', 'Bodyweight chest exercise', ARRAY['chest', 'triceps', 'shoulders'], ARRAY['bodyweight'], FALSE),
+(NULL, 'Running', 'cardio', 'Basic cardiovascular exercise', ARRAY['legs'], ARRAY['bodyweight'], FALSE),
+(NULL, 'Plank', 'strength', 'Core stability exercise', ARRAY['core'], ARRAY['bodyweight'], FALSE);
 
 -- Insert some default badges
 INSERT INTO public.badges (name, description, icon, xp_reward, criteria) VALUES
@@ -379,4 +417,7 @@ CREATE INDEX idx_friendships_friend_id ON public.friendships(friend_id);
 CREATE INDEX idx_posts_user_id ON public.posts(user_id);
 CREATE INDEX idx_comments_post_id ON public.comments(post_id);
 CREATE INDEX idx_likes_post_id ON public.likes(post_id);
-CREATE INDEX idx_notifications_user_id ON public.notifications(user_id); 
+CREATE INDEX idx_notifications_user_id ON public.notifications(user_id);
+CREATE INDEX idx_favorites_user_id ON public.favorites(user_id);
+CREATE INDEX idx_favorites_workout_id ON public.favorites(workout_id);
+CREATE INDEX idx_workouts_is_public ON public.workouts(is_public); 

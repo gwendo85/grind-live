@@ -1,323 +1,420 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Trophy, Target, TrendingUp, Users, Play, Plus, Calendar, Award, Bell } from 'lucide-react';
-import { useId } from 'react';
 import React, { useState } from 'react';
-// import { supabaseBrowser } from '@/lib/supabaseClient';
-// import type { User, Workout } from '@/lib/types';
+import { useUser } from '@/hooks/useUser';
+import { useProgression } from '@/hooks/useProgression';
+import { useFeed } from '@/hooks/useFeed';
+import { useWorkouts } from '@/hooks/useWorkouts';
+import { useDailyGoals } from '@/hooks/useDailyGoals';
+import { useChallenges } from '@/hooks/useChallenges';
 
-// Faux utilisateur pour bypass auth
-const fakeUser = {
-  username: "TestUser",
-  xp: 250,
-  level: 3,
-  goal: "Prendre du muscle",
-  avatar: "https://randomuser.me/api/portraits/men/32.jpg"
-};
-const fakeWorkouts = [
-  { id: 1, name: "Push Day", created_at: "2024-07-01" },
-  { id: 2, name: "Legs", created_at: "2024-07-02" },
-];
+import { AuthGuard } from '@/components/auth/AuthGuard';
+import { CreateWorkoutForm } from '@/components/workouts/CreateWorkoutForm';
+import Link from 'next/link';
+import { ArrowRight, TrendingUp, Target, Clock, Flame, Trophy, Activity, Plus, AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function DashboardPage() {
-  // Bypass auth : on affiche toujours le dashboard avec des données fictives
-  const user = fakeUser;
-  const recentWorkouts = fakeWorkouts;
-  const loading = false;
 
-  const xpToNextLevel = 100 - (user.xp % 100);
-  const progressPercentage = user.xp % 100;
-  const gradientId = useId();
+  // État pour le modal de création de séance
+  const [showCreateWorkout, setShowCreateWorkout] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'feed' | 'progression' | 'seance'>('feed');
+  // Hooks pour les données réelles
+  const { user, loading: userLoading, error: userError } = useUser();
+  const { progression, loading: progressionLoading, isSimulationMode: progressionSimulation } = useProgression();
+  const { feed, loading: feedLoading, isSimulationMode: feedSimulation } = useFeed();
+  const { workouts, loading: workoutsLoading, createWorkout, refresh, isSimulationMode: workoutsSimulation } = useWorkouts();
+  const { goals, loading: goalsLoading, isSimulationMode: goalsSimulation } = useDailyGoals();
+  const { loading: challengesLoading, getMainChallenge, isSimulationMode: challengesSimulation } = useChallenges();
+  
+  // Tabs simplifiés
+  const [activeTab, setActiveTab] = useState('feed');
+  const isActive = (tab: string) => activeTab === tab;
 
-  // Données fictives pour le feed
-  const feedPosts = [
-    {
-      user: 'Alex_Muscle',
-      badge: 'Nouveau PR !',
-      badgeIcon: <Trophy className="inline w-4 h-4 text-orange-500 mb-0.5" />, 
-      time: 'Il y a 2h',
-      title: 'Push Day',
-      emoji: '💪',
-      duration: '1h 30m',
-      details: 'Développé couché · Dips · Épaules · Triceps',
-      likes: 24,
-      comments: 5,
-      shares: 0,
-      avatar: 'A',
-      avatarColor: 'bg-orange-100 text-orange-500',
-    },
-    {
-      user: 'Sophie_Fit',
-      badge: '',
-      badgeIcon: null,
-      time: 'Il y a 4h',
-      title: 'Leg Day',
-      emoji: '🔥',
-      duration: '1h 15m',
-      details: 'Squat · Soulevé de terre · Fentes · Mollets',
-      likes: 18,
-      comments: 3,
-      shares: 0,
-      avatar: 'S',
-      avatarColor: 'bg-orange-50 text-orange-400',
-    },
-  ];
+  // Vérifier si on est en mode simulation (si au moins un hook est en mode simulation)
+  const isSimulationMode = progressionSimulation || feedSimulation || workoutsSimulation || goalsSimulation || challengesSimulation;
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-2">
-      <div className="max-w-md mx-auto space-y-6">
-        {/* Header local identique social/workout */}
-        <div className="flex items-center justify-between mb-4">
-          <Bell className="w-9 h-9 text-gray-400" />
-          <span className="inline-block w-10 h-10 rounded-full bg-gray-300 border-2 border-white overflow-hidden">
-            <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
-          </span>
-        </div>
+  console.log('🔍 DashboardPage: État des hooks', {
+    userLoading,
+    userError,
+    progressionLoading,
+    feedLoading,
+    workoutsLoading,
+    goalsLoading,
+    challengesLoading,
+    isSimulationMode,
+    progressionSimulation,
+    feedSimulation,
+    workoutsSimulation,
+    goalsSimulation,
+    challengesSimulation,
+    user: user ? 'connecté' : 'non connecté'
+  });
 
-        {/* Welcome Section - carte gradient corrigée */}
-        <div className="rounded-3xl p-6 mb-4" style={{ background: `linear-gradient(135deg, #FF9100 0%, #FF6A00 100%)` }}>
-          <div className="flex flex-col gap-3">
-            <div className="text-white text-2xl font-extrabold leading-tight mb-2">
-              Salut, Champion ! <span role="img" aria-label="muscle">💪</span>
-            </div>
-            <div className="text-white text-base mb-4">Prêt à écraser cette séance ?</div>
-            <div className="flex justify-end">
-              <button className="bg-white text-orange-600 font-bold rounded-xl px-6 py-3 text-lg flex items-center gap-2 shadow hover:bg-orange-50 transition">
-                <span className="text-2xl font-bold">+</span> Nouvelle séance
-              </button>
-            </div>
+
+  // Gestion des erreurs (améliorée)
+  if (userError && !isSimulationMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-red-500 mb-4">
+            <AlertCircle size={48} className="mx-auto" />
           </div>
-        </div>
-
-        {/* Stats Cards - grille 2x2 */}
-        <div className="grid grid-cols-2 gap-4 mb-2">
-          {/* Séances cette semaine */}
-          <div className="bg-white rounded-2xl shadow p-4 flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-gray-600">Séances cette semaine</span>
-              <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4h0a4 4 0 0 0-4 4v2" stroke="#FF9100" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="7" r="4" stroke="#FF9100" strokeWidth="2"/></svg>
-            </div>
-            <div className="text-3xl font-extrabold text-gray-900">4</div>
-            <div className="text-green-600 text-sm font-bold flex items-center gap-1">+2 vs semaine dernière</div>
-          </div>
-          {/* Temps total */}
-          <div className="bg-white rounded-2xl shadow p-4 flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-gray-600">Temps total</span>
-              <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#FF9100" strokeWidth="2"/><path d="M12 6v6l4 2" stroke="#FF9100" strokeWidth="2" strokeLinecap="round"/></svg>
-            </div>
-            <div className="text-3xl font-extrabold text-gray-900">6h<br/>45m</div>
-            <div className="text-green-600 text-sm font-bold flex items-center gap-1">+45m</div>
-          </div>
-          {/* PR ce mois */}
-          <div className="bg-white rounded-2xl shadow p-4 flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-gray-600">PR ce mois</span>
-              <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8" stroke="#FF9100" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M21 21H3V3" stroke="#FF9100" strokeWidth="2" strokeLinecap="round"/></svg>
-            </div>
-            <div className="text-3xl font-extrabold text-gray-900">12</div>
-            <div className="text-green-600 text-sm font-bold flex items-center gap-1">+3</div>
-          </div>
-          {/* Streak actuel */}
-          <div className="bg-white rounded-2xl shadow p-4 flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-gray-600">Streak actuel</span>
-              <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#FF9100" strokeWidth="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#FF9100" strokeWidth="2" strokeLinecap="round"/></svg>
-            </div>
-            <div className="text-3xl font-extrabold text-gray-900">21<br/><span className='text-base font-bold'>jours</span></div>
-            <div className="text-green-600 text-sm font-bold flex items-center gap-1">Record !</div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-2xl shadow p-4">
-          <div className="font-bold text-xl text-gray-900 mb-3">Actions rapides</div>
-          <div className="flex flex-col gap-3">
-            <button className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 font-medium text-base hover:bg-gray-50 transition">
-              <span className="text-2xl font-bold">+</span>
-              Ajouter un exercice
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 font-medium text-base hover:bg-gray-50 transition">
-              <Users className="w-5 h-5 text-gray-500" />
-              Inviter des amis
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 font-medium text-base hover:bg-gray-50 transition">
-              <TrendingUp className="w-5 h-5 text-gray-500" />
-              Voir les stats
-            </button>
-          </div>
-        </div>
-
-        {/* Badges récents */}
-        <div className="bg-white rounded-2xl shadow p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Award className="h-5 w-5 text-purple-500" />
-            <span className="font-semibold text-gray-700">Badges récents</span>
-          </div>
-          <div className="text-center py-6">
-            <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-400">Aucun badge encore débloqué</p>
-            <p className="text-sm text-gray-400">Continue tes entraînements pour débloquer des badges !</p>
-          </div>
-        </div>
-
-        {/* Séances récentes */}
-        <div className="bg-white rounded-2xl shadow p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="h-5 w-5 text-green-500" />
-            <span className="font-semibold text-gray-700">Séances récentes</span>
-          </div>
-          {recentWorkouts.length > 0 ? (
-            <div className="space-y-3">
-              {recentWorkouts.map((workout) => (
-                <div key={workout.id} className="flex items-center justify-between">
-                  <span className="font-medium text-gray-800">{workout.name}</span>
-                  <span className="text-xs text-gray-400">{workout.created_at}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400">Aucune séance récente.</p>
-          )}
-        </div>
-
-        {/* Onglets dynamiques et leur contenu (Feed, Progression, Séance) */}
-        <div className="pt-2">
-          <div className="flex bg-gray-100 rounded-2xl p-1 mb-4">
-            <button
-              className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${activeTab === 'feed' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
-              onClick={() => setActiveTab('feed')}
-            >
-              <Users className="w-5 h-5" /> Feed
-            </button>
-            <button
-              className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${activeTab === 'progression' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
-              onClick={() => setActiveTab('progression')}
-            >
-              <TrendingUp className="w-5 h-5" /> Progression
-            </button>
-            <button
-              className={`flex-1 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${activeTab === 'seance' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
-              onClick={() => setActiveTab('seance')}
-            >
-              <Play className="w-5 h-5" /> Séance
-            </button>
-          </div>
-
-          {/* Contenu dynamique selon l'onglet */}
-          {activeTab === 'feed' && (
-            <div className="space-y-4">
-              {feedPosts.map((post, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm flex flex-col gap-2">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${post.avatarColor}`}>{post.avatar}</span>
-                    <div className="flex-1">
-                      <span className="font-bold text-lg text-gray-900 mr-2">{post.user}</span>
-                      {post.badge && (
-                        <span className="text-orange-600 font-semibold text-sm ml-1">{post.badgeIcon} {post.badge}</span>
-                      )}
-                      <div className="text-gray-400 text-xs font-medium">{post.time}</div>
-                    </div>
-                  </div>
-                  <div className="font-bold text-gray-900 text-lg mb-1">{post.title} <span>{post.emoji}</span> <span className="font-normal text-gray-500 text-base ml-2">· {post.duration}</span></div>
-                  <div className="text-gray-500 text-base mb-2">{post.details}</div>
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-gray-400 text-base">
-                    <span className="flex items-center gap-1"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> {post.likes}</span>
-                    <span className="flex items-center gap-1"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> {post.comments}</span>
-                    <span className="flex items-center gap-1"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="16 6 12 2 8 6" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {activeTab === 'progression' && (
-            <div className="space-y-4">
-              {/* Objectif séances mensuelles */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-900 leading-tight">Objectif séances<br/>mensuelles</span>
-                  <span className="text-gray-500 text-lg font-semibold text-right">16/20<br/><span className="text-sm font-normal">séances</span></span>
-                </div>
-                <div className="mt-2 mb-1">
-                  <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-3 rounded-full bg-orange-500 transition-all" style={{ width: '80%' }}></div>
-                  </div>
-                </div>
-                <div className="text-right text-orange-500 font-bold text-base">80% complété</div>
-              </div>
-              {/* Volume d'entraînement */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-900 leading-tight">Volume d'entraînement</span>
-                  <span className="text-gray-500 text-lg font-semibold text-right">8500/10000<br/><span className="text-sm font-normal">kg</span></span>
-                </div>
-                <div className="mt-2 mb-1">
-                  <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-3 rounded-full bg-orange-500 transition-all" style={{ width: '85%' }}></div>
-                  </div>
-                </div>
-                <div className="text-right text-orange-500 font-bold text-base">85% complété</div>
-              </div>
-              {/* Temps d'entraînement */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-900 leading-tight">Temps d'entraînement</span>
-                  <span className="text-gray-500 text-lg font-semibold text-right">24/30<br/><span className="text-sm font-normal">heures</span></span>
-                </div>
-                <div className="mt-2 mb-1">
-                  <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-3 rounded-full bg-orange-500 transition-all" style={{ width: '80%' }}></div>
-                  </div>
-                </div>
-                <div className="text-right text-orange-500 font-bold text-base">80% complété</div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'seance' && (
-            <div className="space-y-6">
-              {/* Boutons de séance */}
-              <div>
-                <div className="font-bold text-xl text-gray-900 mb-3">Commencer une séance</div>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <button className="rounded-xl bg-orange-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-orange-600 transition"><Play className="w-6 h-6" />Push Day</button>
-                  <button className="rounded-xl bg-red-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-red-600 transition"><TrendingUp className="w-6 h-6" />Pull Day</button>
-                  <button className="rounded-xl bg-blue-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-blue-600 transition"><Calendar className="w-6 h-6" />Leg Day</button>
-                  <button className="rounded-xl bg-green-500 text-white font-bold py-6 text-lg flex flex-col items-center justify-center gap-2 shadow hover:bg-green-600 transition"><Award className="w-6 h-6" />Personnalisé</button>
-                </div>
-              </div>
-              {/* Récompenses récentes */}
-              <div>
-                <div className="font-bold text-xl text-gray-900 mb-3">Récompenses récentes</div>
-                <div className="space-y-3">
-                  <div className="bg-yellow-100 rounded-xl p-4 flex flex-col gap-1 border border-yellow-200">
-                    <span className="flex items-center gap-2 text-yellow-800 font-bold text-lg"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8L21 10h-9l1-8z" fill="#FF9100"/></svg>Beast Mode</span>
-                    <span className="text-yellow-900 text-base">20 séances ce mois</span>
-                    <span className="mt-1 inline-block bg-white rounded px-2 py-1 text-xs font-bold text-yellow-800 border border-yellow-300 w-max">Débloqué !</span>
-                  </div>
-                  <div className="bg-red-100 rounded-xl p-4 flex flex-col gap-1 border border-red-200">
-                    <span className="flex items-center gap-2 text-red-700 font-bold text-lg"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16a8 8 0 0 1 0 16zm0-10a2 2 0 1 1 0 4a2 2 0 0 1 0-4z" fill="#FF6A00"/></svg>Régularité</span>
-                    <span className="text-red-800 text-base">7 jours consécutifs</span>
-                    <span className="mt-1 inline-block bg-white rounded px-2 py-1 text-xs font-bold text-red-700 border border-red-300 w-max">Débloqué !</span>
-                  </div>
-                  <div className="bg-gray-100 rounded-xl p-4 flex flex-col gap-1 border border-gray-200 opacity-60">
-                    <span className="flex items-center gap-2 text-gray-400 font-bold text-lg"><Trophy className="w-5 h-5" />Force Brute</span>
-                    <span className="text-gray-400 text-base">Record PR sur un mouvement</span>
-                    <span className="mt-1 inline-block bg-white rounded px-2 py-1 text-xs font-bold text-gray-400 border border-gray-200 w-max">À débloquer</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="text-xl font-bold text-red-500 mb-2">Erreur de chargement</div>
+          <div className="text-gray-600 mb-4">{userError}</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw size={16} />
+            Réessayer
+          </button>
         </div>
       </div>
+    );
+  }
+
+  // Loading state amélioré - ne pas afficher le loading si on est en mode simulation
+  const isLoading = (userLoading || progressionLoading || feedLoading || workoutsLoading || goalsLoading || challengesLoading) && !isSimulationMode;
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-4">
+        <div className="max-w-md mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <div className="text-xl font-bold text-gray-700 mb-2">Chargement...</div>
+            <div className="text-gray-500">Préparation de ton dashboard</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const mainChallenge = getMainChallenge();
+
+  return (
+    <AuthGuard>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-4">
+        <div className="max-w-md mx-auto space-y-6">
+        {/* Header avec navigation */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Salut, {user?.username || 'Champion'} ! 💪
+            </h1>
+            <p className="text-gray-600">Bienvenue sur ton dashboard</p>
+            {isSimulationMode && (
+              <div className="mt-2 text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                🧪 Mode simulation activé
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Link href="/workouts" className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+              Séances
+            </Link>
+            <Link href="/social" className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+              Social
+            </Link>
+          </div>
+        </div>
+
+        {/* Stats principales */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-lg shadow p-4 text-center">
+            <div className="text-2xl font-bold text-orange-500 mb-1">
+              {progression?.sessionsDone || 0}
+            </div>
+            <div className="text-sm text-gray-600">Séances</div>
+            <div className="text-xs text-green-500 mt-1 flex items-center justify-center gap-1">
+              <TrendingUp size={12} />
+              {progression?.sessionsPercent || 0}% de l&apos;objectif
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 text-center">
+            <div className="text-2xl font-bold text-blue-500 mb-1">
+              {progression?.volumeDone || 0}
+            </div>
+            <div className="text-sm text-gray-600">Volume (kg)</div>
+            <div className="text-xs text-green-500 mt-1 flex items-center justify-center gap-1">
+              <Target size={12} />
+              {progression?.volumePercent || 0}% de l&apos;objectif
+            </div>
+          </div>
+        </div>
+
+        {/* Objectifs du jour */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
+            <Target size={20} className="text-orange-500" />
+            Objectifs du jour
+          </h2>
+          <div className="space-y-3">
+            {goals && goals.length > 0 ? (
+              goals.map((goal) => (
+                <div key={goal.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${
+                      goal.completed ? 'bg-green-500' : 
+                      goal.current > 0 ? 'bg-orange-500' : 'bg-gray-300'
+                    }`}></div>
+                    <span className="text-sm">{goal.title}</span>
+                  </div>
+                  <span className={`text-xs font-medium ${
+                    goal.completed ? 'text-green-500' : 
+                    goal.current > 0 ? 'text-orange-500' : 'text-gray-500'
+                  }`}>
+                    {goal.type === 'workout' ? (
+                      goal.completed ? 'Terminé' : 'À faire'
+                    ) : (
+                      `${goal.current} / ${goal.target}`
+                    )}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500 text-sm">Aucun objectif défini</div>
+            )}
+          </div>
+        </div>
+
+        {/* Tabs simplifiés */}
+        <div className="flex gap-2 bg-white rounded-lg p-1 shadow">
+          {['feed', 'progression', 'seance'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                isActive(tab)
+                  ? 'bg-orange-500 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {tab === 'feed' && 'Feed'}
+              {tab === 'progression' && 'Progression'}
+              {tab === 'seance' && 'Séances'}
+            </button>
+          ))}
+        </div>
+
+        {/* Contenu des onglets */}
+        <div className="bg-white rounded-lg shadow p-6">
+          {isActive('feed') && (
+            <div>
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Activity size={20} className="text-blue-500" />
+                Feed d&apos;activité
+              </h2>
+              {feedLoading && !isSimulationMode ? (
+                <div className="text-gray-500 flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                  Chargement du feed...
+                </div>
+              ) : feed && feed.length > 0 ? (
+                <div className="space-y-4">
+                  {feed.slice(0, 3).map((item, idx) => (
+                    <div key={item.id || idx} className="border-b pb-4 last:border-b-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-medium">{item.user.name}</span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(item.timestamp).toLocaleString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      <div className="font-medium">{item.title}</div>
+                      <div className="text-sm text-gray-600">{item.description}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-500">Aucune activité récente</div>
+              )}
+            </div>
+          )}
+
+          {isActive('progression') && (
+            <div>
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <TrendingUp size={20} className="text-green-500" />
+                Ta progression
+              </h2>
+              {progressionLoading && !isSimulationMode ? (
+                <div className="text-gray-500 flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
+                  Chargement de la progression...
+                </div>
+              ) : progression ? (
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span>Séances cette semaine:</span>
+                    <span className="font-bold">{progression.sessionsDone || 0} / {progression.sessionsGoal || 5}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Temps total:</span>
+                    <span className="font-bold">{progression.timeDone || 0}h / {progression.timeGoal || 5}h</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Volume total:</span>
+                    <span className="font-bold">{progression.volumeDone || 0}kg / {progression.volumeGoal || 10000}kg</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500">Aucune donnée de progression</div>
+              )}
+            </div>
+          )}
+
+          {isActive('seance') && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Clock size={20} className="text-orange-500" />
+                  Tes séances
+                </h2>
+                <button
+                  onClick={() => setShowCreateWorkout(true)}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Créer une séance
+                </button>
+              </div>
+              {workoutsLoading && !isSimulationMode ? (
+                <div className="text-gray-500 flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                  Chargement des séances...
+                </div>
+              ) : workouts && workouts.length > 0 ? (
+                <div className="space-y-4">
+                  {workouts.slice(0, 3).map((workout, index) => (
+                    <div key={workout.id} className="border-b pb-4 last:border-b-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="font-medium text-lg">{workout.name}</div>
+                          <div className="text-sm text-gray-600">
+                            {new Date(workout.created_at).toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-orange-500">
+                            {workout.exercise_count || 0} exercices
+                          </div>
+                          {workout.estimated_duration && (
+                            <div className="text-xs text-gray-500">
+                              ~{workout.estimated_duration} min
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {workout.notes && (
+                        <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                          {workout.notes}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  <Link href="/workouts" className="flex items-center gap-2 text-orange-500 hover:text-orange-600 text-sm font-medium">
+                    Voir toutes mes séances
+                    <ArrowRight size={16} />
+                  </Link>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-500 mb-4">Aucune séance trouvée</div>
+                  <button
+                    onClick={() => setShowCreateWorkout(true)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Créer ta première séance
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Actions rapides */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
+            <Flame size={20} className="text-red-500" />
+            Actions rapides
+          </h2>
+          <div className="space-y-2">
+            <button
+              onClick={async () => {
+                try {
+                  const testWorkout = {
+                    name: 'Test Séance ' + new Date().toLocaleTimeString(),
+                    notes: 'Séance de test',
+                    exercises: [
+                      {
+                        name: 'Développé couché',
+                        sets: 3,
+                        reps: 10,
+                        weight: 80,
+                        rest: 90,
+                        notes: 'Test'
+                      }
+                    ]
+                  };
+                  const result = await createWorkout(testWorkout);
+                  alert('Séance créée avec succès !');
+                } catch (error) {
+                  console.error('❌ Erreur création séance:', error);
+                  alert('Erreur: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
+                }
+              }}
+              className="w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              🧪 Test Création Séance
+            </button>
+            <div className="text-xs text-gray-500">
+              Séances actuelles: {workouts?.length || 0}
+            </div>
+            <button
+              onClick={() => {
+                refresh();
+              }}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 justify-center"
+            >
+              <RefreshCw size={16} />
+              Rafraîchir les séances
+            </button>
+          </div>
+        </div>
+
+        {/* Prochain événement */}
+        {mainChallenge && (
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow p-4 text-white">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-bold">{mainChallenge.title}</h3>
+              <Trophy size={20} />
+            </div>
+            <p className="text-sm opacity-90 mb-3">{mainChallenge.description}</p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-white bg-opacity-20 rounded-full h-2">
+                <div 
+                  className="bg-white h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${mainChallenge.progress}%` }}
+                ></div>
+              </div>
+              <span className="text-sm font-medium">{mainChallenge.current}/{mainChallenge.target}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de création de séance */}
+        {showCreateWorkout && (
+          <CreateWorkoutForm onClose={() => setShowCreateWorkout(false)} />
+        )}
+      </div>
     </div>
+    </AuthGuard>
   );
 }
