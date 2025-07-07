@@ -119,14 +119,10 @@ export function useExplorer() {
       setLoading(true);
       setError(null);
 
-      // Récupérer les séances publiques avec le nombre de favoris
+      // Récupérer les séances publiques (sans relation favorites pour éviter les erreurs)
       const { data, error } = await supabaseBrowser
         .from('workouts')
-        .select(`
-          *,
-          user:profiles(username),
-          _count: favorites(count)
-        `)
+        .select('*')
         .eq('is_public', true)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -155,16 +151,12 @@ export function useExplorer() {
       setLoading(true);
       setError(null);
 
-      // Récupérer les séances les plus populaires
+      // Récupérer les séances populaires (sans relation favorites pour éviter les erreurs)
       const { data, error } = await supabaseBrowser
         .from('workouts')
-        .select(`
-          *,
-          user:profiles(username),
-          _count: favorites(count)
-        `)
+        .select('*')
         .eq('is_public', true)
-        .order('_count.favorites', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(10);
 
       if (error) throw error;
@@ -229,11 +221,7 @@ export function useExplorer() {
 
       const { data, error } = await supabaseBrowser
         .from('workouts')
-        .select(`
-          *,
-          user:profiles(username),
-          _count: favorites(count)
-        `)
+        .select('*')
         .eq('is_public', true)
         .ilike('name', `%${query}%`)
         .order('created_at', { ascending: false })
@@ -272,11 +260,7 @@ export function useExplorer() {
 
       const { data, error } = await supabaseBrowser
         .from('workouts')
-        .select(`
-          *,
-          user:profiles(username),
-          _count: favorites(count)
-        `)
+        .select('*')
         .eq('is_public', true)
         .eq('difficulty', difficulty)
         .order('created_at', { ascending: false })

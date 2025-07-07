@@ -31,10 +31,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabaseServer
       .from("favorites")
-      .select(`
-        *,
-        workouts(*)
-      `)
+      .select('*')
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
