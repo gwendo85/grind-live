@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "../../components/ui/avatar";
 import { Button } from "../../components/ui/button";
@@ -14,33 +14,42 @@ const mockFriends = [
   { name: "David", avatar: "D" },
 ];
 
+type TabType = 'activity' | 'friends' | 'challenges';
+
 export default function SocialPage() {
-  const [activeTab, setActiveTab] = useState<'activity' | 'friends' | 'challenges'>('activity');
+  const [activeTab, setActiveTab] = useState<TabType>('activity');
   const { user, loading: userLoading } = useUser();
   const { feed, loading: feedLoading } = useFeed();
 
-  // Utiliser le vrai nom d'utilisateur ou un fallback
-  const userName = user?.username || user?.email?.split('@')[0] || 'Utilisateur';
-  const userInitial = userName.charAt(0).toUpperCase();
+  // Mémoiser les calculs utilisateur pour optimiser les performances
+  const { userName, userInitial } = useMemo(() => {
+    const name = user?.username || user?.email?.split('@')[0] || 'Utilisateur';
+    return {
+      userName: name,
+      userInitial: name.charAt(0).toUpperCase()
+    };
+  }, [user?.username, user?.email]);
+
+  // Optimiser les handlers de tabs avec useCallback
+  const handleTabChange = useCallback((tab: TabType) => {
+    setActiveTab(tab);
+  }, []);
 
   // Afficher un loader si l'utilisateur est en cours de chargement
   if (userLoading) {
     return (
-      <AuthGuard>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4">
-          <div className="max-w-md mx-auto space-y-6">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Chargement du profil...</p>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4">
+        <div className="max-w-md mx-auto space-y-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Chargement du profil...</p>
           </div>
         </div>
-      </AuthGuard>
+      </div>
     );
   }
 
   return (
-    <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4">
         <div className="max-w-md mx-auto space-y-6">
           {/* Header avec navigation */}
@@ -66,19 +75,19 @@ export default function SocialPage() {
           <div className="flex gap-2 px-4 mb-4">
             <button
               className={`px-4 py-2 rounded-full font-semibold transition-all duration-150 ${activeTab === 'activity' ? 'bg-orange-100 text-orange-600 shadow' : 'bg-gray-100 text-gray-500'}`}
-              onClick={() => setActiveTab('activity')}
+              onClick={() => handleTabChange('activity')}
             >
               Activity
             </button>
             <button
               className={`px-4 py-2 rounded-full font-semibold transition-all duration-150 ${activeTab === 'friends' ? 'bg-blue-100 text-blue-600 shadow' : 'bg-gray-100 text-gray-500'}`}
-              onClick={() => setActiveTab('friends')}
+              onClick={() => handleTabChange('friends')}
             >
               Friends
             </button>
             <button
               className={`px-4 py-2 rounded-full font-semibold transition-all duration-150 ${activeTab === 'challenges' ? 'bg-indigo-100 text-indigo-600 shadow' : 'bg-gray-100 text-gray-500'}`}
-              onClick={() => setActiveTab('challenges')}
+              onClick={() => handleTabChange('challenges')}
             >
               Challenges
             </button>
@@ -102,33 +111,36 @@ export default function SocialPage() {
                     <div key={post.id} className="bg-white rounded-2xl shadow p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <Avatar>
-                          <AvatarFallback>{post.avatar}</AvatarFallback>
+                          <AvatarFallback>{post.user.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span className="font-semibold">{post.user}</span>
-                        <span className="text-xs text-gray-400 ml-2">{post.time}</span>
+                        <span className="font-semibold">{post.user.name}</span>
+                        <span className="text-xs text-gray-400 ml-2">
+                          {post.timestamp ? new Date(post.timestamp).toLocaleString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }) : 'N/A'}
+                        </span>
                         <span className="ml-auto text-gray-400">•••</span>
                       </div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-orange-600 text-base font-bold">
-                          {post.emoji} {post.type === 'workout' ? 'Séance terminée' : 'Nouveau post'}
+                          {post.type === 'workout' ? '💪 Séance terminée' : 
+                           post.type === 'achievement' ? '🏆 Nouveau record' : 
+                           post.type === 'challenge' ? '🎯 Challenge' : '📝 Nouveau post'}
                         </span>
                       </div>
                       <div className="mb-2 text-gray-700">
-                        {post.type === 'workout' ? (
-                          <div>
-                            <div className="font-semibold">{post.title}</div>
-                            <div className="text-sm text-gray-500">{post.details}</div>
-                          </div>
-                        ) : (
-                          post.details
-                        )}
+                        <div>
+                          <div className="font-semibold">{post.title}</div>
+                          <div className="text-sm text-gray-500">{post.description}</div>
+                        </div>
                       </div>
                       <div className="flex gap-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
-                          <span role="img" aria-label="like">🧡</span>{post.likes}
+                          <span role="img" aria-label="like">🧡</span>0
                         </span>
                         <span className="flex items-center gap-1">
-                          <span role="img" aria-label="comment">💬</span>{post.comments}
+                          <span role="img" aria-label="comment">💬</span>0
                         </span>
                       </div>
                     </div>
@@ -162,6 +174,5 @@ export default function SocialPage() {
           </div>
         </div>
       </div>
-    </AuthGuard>
-  );
+    );
 } 

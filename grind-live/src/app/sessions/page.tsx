@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/hooks/useUser';
@@ -25,7 +25,7 @@ export default function SessionsPage() {
     }
   }, [user, userLoading, router]);
 
-  const handleDelete = async (workoutId: string) => {
+  const handleDelete = useCallback(async (workoutId: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette séance ?')) {
       return;
     }
@@ -41,26 +41,26 @@ export default function SessionsPage() {
     } finally {
       setIsDeleting(null);
     }
-  };
+  }, [deleteWorkout, refresh]);
 
-  const handleCreateSession = () => {
+  const handleCreateSession = useCallback(() => {
     router.push('/workouts?create=true');
-  };
+  }, [router]);
 
-  const handleViewSession = (workoutId: string) => {
+  const handleViewSession = useCallback((workoutId: string) => {
     router.push(`/workouts/${workoutId}`);
-  };
+  }, [router]);
 
-  const handleEditSession = (workoutId: string) => {
+  const handleEditSession = useCallback((workoutId: string) => {
     router.push(`/workouts/${workoutId}?edit=true`);
-  };
+  }, [router]);
 
-  // Calcul des statistiques
-  const stats = {
+  // Calcul des statistiques (mémorisées pour performance)
+  const stats = useMemo(() => ({
     mySessions: workouts?.length || 0,
     favorites: favorites?.length || 0,
     public: publicWorkouts?.length || 0
-  };
+  }), [workouts, favorites, publicWorkouts]);
 
   if (userLoading) {
     return (
@@ -181,7 +181,7 @@ export default function SessionsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Dumbbell className="h-4 w-4" />
-                      <span>{workout.exercise_logs?.length || 0} exercices</span>
+                      <span>{workout.exercise_count || 0} exercices</span>
                     </div>
                   </div>
 
