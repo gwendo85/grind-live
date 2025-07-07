@@ -112,9 +112,9 @@ export default function SocialPage() {
                     <div key={post.id} className="bg-white rounded-2xl shadow p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <Avatar>
-                          <AvatarFallback>{post.user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback>{(post.user?.name || 'U').charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span className="font-semibold">{post.user.name}</span>
+                        <span className="font-semibold">{post.user?.name || 'Utilisateur'}</span>
                         <span className="text-xs text-gray-400 ml-2">
                           {post.timestamp ? new Date(post.timestamp).toLocaleString('fr-FR', {
                             hour: '2-digit',

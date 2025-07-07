@@ -58,14 +58,11 @@ export function useWorkouts() {
   const [isSimulationMode, setIsSimulationMode] = useState(false);
 
   useEffect(() => {
-    console.log('🔍 useWorkouts: useEffect déclenché');
     
     const loadWorkouts = async () => {
-      console.log('🔍 useWorkouts: loadWorkouts démarré');
       
       // Mode simulation si pas d'utilisateur connecté
       if (!user) {
-        console.log('🔍 useWorkouts: Pas d\'utilisateur, mode simulation activé');
         setIsSimulationMode(true);
         setWorkouts(MOCK_WORKOUTS);
         setLoading(false);
@@ -76,7 +73,6 @@ export function useWorkouts() {
         setLoading(true);
         setError(null);
         
-        console.log('🔍 useWorkouts: Chargement des séances pour l\'utilisateur:', user.id);
         
         const { data, error: fetchError } = await supabaseBrowser
           .from('workouts')
@@ -90,7 +86,6 @@ export function useWorkouts() {
           setIsSimulationMode(true);
           setWorkouts(MOCK_WORKOUTS);
         } else {
-          console.log('🔍 useWorkouts: Séances chargées avec succès:', data?.length || 0);
           setWorkouts(data || []);
         }
       } catch (error) {
@@ -108,7 +103,6 @@ export function useWorkouts() {
       loadWorkouts();
     } else {
       // Côté serveur, passer directement en mode simulation
-      console.log('🔍 useWorkouts: Côté serveur - Mode simulation activé');
       setIsSimulationMode(true);
       setWorkouts(MOCK_WORKOUTS);
       setLoading(false);
@@ -122,7 +116,6 @@ export function useWorkouts() {
       return;
     }
 
-    console.log('🔍 Configuration de l\'écoute en temps réel pour les séances');
 
     // Écouter les insertions
     const insertSubscription = supabaseBrowser
@@ -136,7 +129,6 @@ export function useWorkouts() {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('🔍 Nouvelle séance détectée:', payload.new);
           setWorkouts(prev => [payload.new as Workout, ...prev]);
         }
       )
@@ -154,7 +146,6 @@ export function useWorkouts() {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('🔍 Séance mise à jour:', payload.new);
           setWorkouts(prev => 
             prev.map(workout => 
               workout.id === payload.new.id ? payload.new as Workout : workout
@@ -176,7 +167,6 @@ export function useWorkouts() {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('🔍 Séance supprimée:', payload.old);
           setWorkouts(prev => 
             prev.filter(workout => workout.id !== payload.old.id)
           );
@@ -186,7 +176,6 @@ export function useWorkouts() {
 
     // Nettoyer les abonnements
     return () => {
-      console.log('🔍 Nettoyage des abonnements temps réel');
       insertSubscription.unsubscribe();
       updateSubscription.unsubscribe();
       deleteSubscription.unsubscribe();
@@ -197,7 +186,6 @@ export function useWorkouts() {
   const refresh = useCallback(() => {
     if (typeof window !== 'undefined') {
       // Recharger les données
-      console.log('🔍 useWorkouts: Rafraîchissement manuel');
       // Re-déclencher le useEffect en forçant un re-render
       setWorkouts([]);
       setLoading(true);
@@ -206,11 +194,9 @@ export function useWorkouts() {
 
   // Créer une nouvelle séance avec exercices
   const createWorkout = useCallback(async (workoutData: WorkoutWithExercises) => {
-    console.log('🔍 createWorkout appelé avec:', workoutData);
     
     // Mode simulation si pas d'utilisateur connecté
     if (!user) {
-      console.log('🔍 Mode simulation : création de séance mock');
       
       const newWorkout: Workout = {
         id: Date.now().toString(),
@@ -234,7 +220,6 @@ export function useWorkouts() {
       return newWorkout;
     }
 
-    console.log('🔍 Utilisateur:', user);
     
     try {
       setError(null);
@@ -249,7 +234,6 @@ export function useWorkouts() {
         date: workoutData.date || new Date().toISOString().split('T')[0],
       };
 
-      console.log('🔍 Données de séance à insérer:', workoutWithUser);
 
       const { data: workout, error: workoutError } = await supabaseBrowser
         .from('workouts')
@@ -257,7 +241,6 @@ export function useWorkouts() {
         .select()
         .single();
 
-      console.log('🔍 Résultat création séance:', { workout, workoutError });
 
       if (workoutError) {
         console.error('Erreur lors de la création de la séance:', workoutError);
@@ -311,7 +294,6 @@ export function useWorkouts() {
         }
       }
 
-      console.log('🔍 Séance créée avec succès:', workout);
       return workout;
     } catch (error) {
       console.error('Erreur lors de la création de la séance:', error);

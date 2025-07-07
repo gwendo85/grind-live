@@ -27,18 +27,15 @@ export function useUser() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔍 useUser: Début du chargement');
     
     const fetchUser = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        console.log('🔍 useUser: Vérification de la session...');
         
         // Vérifier d'abord si on est côté client
         if (typeof window === 'undefined') {
-          console.log('ℹ️ useUser: Côté serveur, pas de session');
           setUser(null);
           return;
         }
@@ -49,7 +46,6 @@ export function useUser() {
           console.warn('⚠️ useUser: Erreur auth (normal si non connecté):', authError.message);
           // Ne pas traiter comme une erreur critique si c'est juste "pas de session"
           if (authError.message.includes('session') || authError.message.includes('token')) {
-            console.log('ℹ️ useUser: Aucune session active');
             setUser(null);
             return;
           }
@@ -58,12 +54,10 @@ export function useUser() {
         }
         
         if (!authUser) {
-          console.log('ℹ️ useUser: Aucun utilisateur connecté');
           setUser(null);
           return;
         }
         
-        console.log('🔍 useUser: Récupération du profil...');
         const { data: profile, error: profileError } = await supabaseBrowser
           .from('users')
           .select('*')
@@ -110,7 +104,6 @@ export function useUser() {
         console.error('❌ useUser: Erreur inattendue:', err);
         // Ne pas bloquer l'application pour les erreurs d'auth
         if (err instanceof Error && err.message.includes('auth')) {
-          console.log('ℹ️ useUser: Erreur auth non critique, utilisateur non connecté');
           setUser(null);
         } else {
           setError(err instanceof Error ? err.message : 'Erreur inconnue');
@@ -125,7 +118,6 @@ export function useUser() {
     // Écouter les changements d'authentification
     const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔍 useUser: Changement d\'état auth:', event, session?.user?.id);
         
         if (event === 'SIGNED_IN' && session?.user) {
           // Recharger l'utilisateur quand il se connecte

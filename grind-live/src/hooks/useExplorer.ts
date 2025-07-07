@@ -103,7 +103,6 @@ export function useExplorer() {
   const loadPublicWorkouts = useCallback(async () => {
     // Mode simulation si pas d'utilisateur connecté
     if (!user) {
-      console.log('🔍 Mode simulation : chargement des séances publiques mock');
       setLoading(true);
       
       // Simuler un délai de chargement
@@ -127,12 +126,28 @@ export function useExplorer() {
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase lors du chargement des séances publiques:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        // En cas d'erreur, utiliser les données simulées
+        setPublicWorkouts(MOCK_PUBLIC_WORKOUTS);
+        return;
+      }
 
       setPublicWorkouts(data || []);
     } catch (err) {
-      console.error('Erreur lors du chargement des séances publiques:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      console.error('Erreur lors du chargement des séances publiques:', {
+        error: err,
+        message: err instanceof Error ? err.message : 'Erreur inconnue',
+        stack: err instanceof Error ? err.stack : undefined
+      });
+      // En cas d'erreur, utiliser les données simulées
+      setPublicWorkouts(MOCK_PUBLIC_WORKOUTS);
+      setError('Erreur lors du chargement des séances publiques');
     } finally {
       setLoading(false);
     }
@@ -142,7 +157,6 @@ export function useExplorer() {
   const loadPopularWorkouts = useCallback(async () => {
     // Mode simulation si pas d'utilisateur connecté
     if (!user) {
-      console.log('🔍 Mode simulation : chargement des séances populaires mock');
       setPopularWorkouts(MOCK_POPULAR_WORKOUTS);
       return;
     }
@@ -159,12 +173,28 @@ export function useExplorer() {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase lors du chargement des séances populaires:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        // En cas d'erreur, utiliser les données simulées
+        setPopularWorkouts(MOCK_POPULAR_WORKOUTS);
+        return;
+      }
 
       setPopularWorkouts(data || []);
     } catch (err) {
-      console.error('Erreur lors du chargement des séances populaires:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      console.error('Erreur lors du chargement des séances populaires:', {
+        error: err,
+        message: err instanceof Error ? err.message : 'Erreur inconnue',
+        stack: err instanceof Error ? err.stack : undefined
+      });
+      // En cas d'erreur, utiliser les données simulées
+      setPopularWorkouts(MOCK_POPULAR_WORKOUTS);
+      setError('Erreur lors du chargement des séances populaires');
     } finally {
       setLoading(false);
     }
@@ -189,11 +219,9 @@ export function useExplorer() {
 
   // Rechercher des séances
   const searchWorkouts = useCallback(async (query: string) => {
-    console.log('🔍 Recherche de séances:', query);
     
     // Mode simulation si pas d'utilisateur connecté
     if (!user) {
-      console.log('🔍 Mode simulation : recherche de séances mock');
       
       if (!query.trim()) {
         setPublicWorkouts(MOCK_PUBLIC_WORKOUTS);
@@ -240,11 +268,9 @@ export function useExplorer() {
 
   // Filtrer par difficulté
   const filterByDifficulty = useCallback(async (difficulty: string) => {
-    console.log('🔍 Filtrage par difficulté:', difficulty);
     
     // Mode simulation si pas d'utilisateur connecté
     if (!user) {
-      console.log('🔍 Mode simulation : filtrage par difficulté mock');
       
       const filtered = MOCK_PUBLIC_WORKOUTS.filter(workout =>
         workout.difficulty === difficulty
